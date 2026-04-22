@@ -12,6 +12,8 @@ const LedgerEntry = require('../models/LedgerEntry');
 const credentialStore = require('../services/credentialStore');
 const audit = require('../services/audit');
 const billing = require('../services/billing');
+const SystemSetting = require('../models/SystemSetting');
+const systemSettings = require('../services/systemSettings');
 const countries = require('../utils/countries');
 const ctx = require('../utils/asyncContext');
 const { requireSuperAdmin, signSession, setSessionCookie } = require('../middleware/auth');
@@ -400,6 +402,48 @@ router.post('/users/:id/demote', async (req, res, next) => {
     await u.save();
     await audit.record({ ...audit.fromReq(req), action: 'admin.user.demote', entity: 'User', entityId: u._id, metadata: { email: u.email } });
     res.redirect('/admin/users');
+  } catch (e) { next(e); }
+});
+
+router.get('/settings', async (req, res, next) => {
+  try {
+    const doc = await SystemSetting.getOrCreate();
+    res.render('admin/settings', {
+      settings: doc.toObject ? doc.toObject() : doc,
+      error: null,
+      saved: req.query.saved === '1',
+    });
+  } catch (e) { next(e); }
+});
+
+router.post('/settings', async (req, res, next) => {
+  try {
+    const raw = req.body['billing.creditUsdRate'];
+    const rate = parseFloat(raw);
+    if (!Number.isFinite(rate) || rate < 0.000001) {
+      const doc = await SystemSetting.getOrCreate();
+      const obj = doc.toObject ? doc.toObject() : doc;
+      obj.billing = obj.billing || {};
+      obj.billing.creditUsdRate = raw;
+      return res.status(400).render('admin/settings', {
+        settings: obj,
+        error: 'invalid_credit_usd_rate',
+        saved: false,
+      });
+    }
+    await SystemSetting.findOneAndUpdate(
+      { key: 'global' },
+      { $set: { 'billing.creditUsdRate': rate } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    systemSettings.invalidate();
+    await audit.record({
+      ...audit.fromReq(req),
+      action: 'admin.settings.update',
+      entity: 'SystemSetting',
+      metadata: { creditUsdRate: rate },
+    });
+    res.redirect('/admin/settings?saved=1');
   } catch (e) { next(e); }
 });
 

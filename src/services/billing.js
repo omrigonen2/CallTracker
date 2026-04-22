@@ -3,7 +3,7 @@
 const Account = require('../models/Account');
 const ProviderCredential = require('../models/ProviderCredential');
 const LedgerEntry = require('../models/LedgerEntry');
-const config = require('../config');
+const systemSettings = require('./systemSettings');
 const log = require('../utils/logger');
 
 const MARGIN_KINDS = ['numberPurchase', 'numberMonthly', 'callPerMinute'];
@@ -25,8 +25,8 @@ function applyMargin(usd, mode, value) {
   return usd * (1 + value / 100);
 }
 
-function usdToCredits(usd) {
-  const rate = Number(config.creditUsdRate) || 0.01;
+async function usdToCredits(usd) {
+  const rate = await systemSettings.getCreditUsdRate();
   if (rate <= 0) return Math.ceil(usd);
   return Math.ceil(usd / rate);
 }
@@ -37,7 +37,7 @@ function usdToCredits(usd) {
  *   2. Apply provider's default margin for `kind`.
  *   3. If the account has an enabled override for `kind`, apply it INSTEAD
  *      of the provider default (override is the final word).
- *   4. Convert USD → credits via CREDIT_USD_RATE and round up.
+ *   4. Convert USD → credits via the configured CREDIT_USD_RATE and round up.
  *
  * Returns { credits, marginMode, marginValue, finalUsd }.
  */
@@ -69,7 +69,7 @@ async function computeCredits({ providerCredentialId, accountId, kind, providerC
   }
 
   const finalUsd = applyMargin(usdIn, marginMode, marginValue);
-  const credits = usdToCredits(finalUsd);
+  const credits = await usdToCredits(finalUsd);
   return { credits, marginMode, marginValue, finalUsd, providerCostUsd: usdIn };
 }
 

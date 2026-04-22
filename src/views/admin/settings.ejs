@@ -1,0 +1,80 @@
+<%- include('../partials/header') %>
+
+<%
+  var currentRate = (settings && settings.billing && settings.billing.creditUsdRate);
+  var rateNum = parseFloat(currentRate);
+  if (!isFinite(rateNum) || rateNum <= 0) rateNum = 0.01;
+  var creditsPerUsd = Math.floor(1 / rateNum);
+  var usdPerThousand = (1000 * rateNum).toFixed(2);
+%>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('admin:settings.title') %></h1>
+    <p class="subtitle"><%= t('admin:settings.subtitle') %></p>
+  </div>
+</div>
+
+<% if (typeof saved !== 'undefined' && saved) { %>
+  <div class="flash flash-success"><%= t('admin:settings.saved') %></div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="flash flash-error"><%= t('admin:settings.' + error) %></div>
+<% } %>
+
+<form method="post" action="/admin/settings" class="stack" id="settings-form">
+  <div class="card">
+    <h2 class="card-title"><%= t('admin:settings.billing') %></h2>
+
+    <div class="form-row">
+      <label for="creditUsdRate"><%= t('admin:settings.credit_usd_rate') %></label>
+      <input
+        type="number"
+        id="creditUsdRate"
+        name="billing.creditUsdRate"
+        step="0.000001"
+        min="0.000001"
+        value="<%= currentRate %>"
+        required
+      />
+      <small class="help"><%= t('admin:settings.credit_usd_rate_help') %></small>
+    </div>
+
+    <div class="callout">
+      <p>
+        <span class="material-symbols-outlined">paid</span>
+        <span id="preview-one-usd"><%= t('admin:settings.preview_one_usd', { credits: creditsPerUsd.toLocaleString(locale) }) %></span>
+      </p>
+      <p>
+        <span class="material-symbols-outlined">savings</span>
+        <span id="preview-thousand"><%= t('admin:settings.preview_thousand', { usd: usdPerThousand }) %></span>
+      </p>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="submit" class="btn btn-primary"><%= t('actions.save') %></button>
+  </div>
+</form>
+
+<script>
+  (function () {
+    var input = document.getElementById('creditUsdRate');
+    var oneUsd = document.getElementById('preview-one-usd');
+    var thousand = document.getElementById('preview-thousand');
+    var oneUsdTpl = <%- JSON.stringify(t('admin:settings.preview_one_usd', { credits: '__N__' })) %>;
+    var thousandTpl = <%- JSON.stringify(t('admin:settings.preview_thousand', { usd: '__N__' })) %>;
+    function fmt(n) { try { return n.toLocaleString(<%- JSON.stringify(locale) %>); } catch (_e) { return String(n); } }
+    function update() {
+      var v = parseFloat(input.value);
+      if (!isFinite(v) || v <= 0) return;
+      var credits = Math.floor(1 / v);
+      var usd = (1000 * v).toFixed(2);
+      oneUsd.textContent = oneUsdTpl.replace('__N__', fmt(credits));
+      thousand.textContent = thousandTpl.replace('__N__', usd);
+    }
+    if (input) input.addEventListener('input', update);
+  })();
+</script>
+
+<%- include('../partials/footer') %>

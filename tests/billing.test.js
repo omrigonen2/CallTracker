@@ -5,7 +5,6 @@ process.env.MASTER_ENCRYPTION_KEY = process.env.MASTER_ENCRYPTION_KEY || 'ZGV2ZG
 process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/calltracker_test';
 process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'test-session';
-process.env.CREDIT_USD_RATE = '0.01';
 process.env.NODE_ENV = 'test';
 
 const test = require('node:test');
@@ -82,6 +81,13 @@ stub('../src/utils/logger', {
   child: () => ({ info: () => {}, warn: () => {}, error: () => {}, debug: () => {} }),
 });
 
+let creditUsdRate = 0.01;
+stub('../src/services/systemSettings', {
+  get: async () => ({ billing: { creditUsdRate } }),
+  invalidate: () => {},
+  getCreditUsdRate: async () => creditUsdRate,
+});
+
 const billing = require('../src/services/billing');
 
 test('applyMargin: percent and fixed', () => {
@@ -91,10 +97,21 @@ test('applyMargin: percent and fixed', () => {
   assert.strictEqual(billing.applyMargin(-5, 'percent', 10), 0, 'negative usd is clamped to 0');
 });
 
-test('usdToCredits: rounds up via CREDIT_USD_RATE', () => {
-  assert.strictEqual(billing.usdToCredits(1.0), 100, '$1.00 with rate 0.01 -> 100 credits');
-  assert.strictEqual(billing.usdToCredits(0.001), 1, 'fractional always rounds up');
-  assert.strictEqual(billing.usdToCredits(0), 0);
+test('usdToCredits: rounds up via system-settings rate', async () => {
+  creditUsdRate = 0.01;
+  assert.strictEqual(await billing.usdToCredits(1.0), 100, '$1.00 with rate 0.01 -> 100 credits');
+  assert.strictEqual(await billing.usdToCredits(0.001), 1, 'fractional always rounds up');
+  assert.strictEqual(await billing.usdToCredits(0), 0);
+});
+
+test('usdToCredits: honors a different rate from systemSettings', async () => {
+  creditUsdRate = 0.005;
+  try {
+    assert.strictEqual(await billing.usdToCredits(1.0), 200, '$1.00 with rate 0.005 -> 200 credits');
+    assert.strictEqual(await billing.usdToCredits(0.5), 100);
+  } finally {
+    creditUsdRate = 0.01;
+  }
 });
 
 test('computeCredits: uses provider default margin (percent)', async () => {

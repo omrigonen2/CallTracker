@@ -3,6 +3,7 @@
 const { connect } = require('../db/mongo');
 const { seedSystemRoles } = require('./roles');
 const LocalizedTemplate = require('../models/LocalizedTemplate');
+const SystemSetting = require('../models/SystemSetting');
 const log = require('../utils/logger');
 
 const SYSTEM_TEMPLATES = [
@@ -26,6 +27,8 @@ async function seedTemplates() {
   await connect();
   await seedSystemRoles();
   await seedTemplates();
+  await SystemSetting.getOrCreate();
+  log.info('system settings ensured');
   log.info('seed complete');
   process.exit(0);
 })().catch((e) => { log.error(e); process.exit(1); });

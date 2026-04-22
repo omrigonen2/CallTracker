@@ -100,5 +100,16 @@
     "demote": "Revoke super-admin",
     "last_login": "Last login",
     "self_demote": "You cannot revoke your own super-admin status."
+  },
+  "settings": {
+    "title": "System Settings",
+    "subtitle": "Global platform configuration. Changes apply immediately.",
+    "billing": "Billing",
+    "credit_usd_rate": "Credit-to-USD rate",
+    "credit_usd_rate_help": "USD value of 1 credit. Lower = finer granularity (e.g. 0.01 means $1 = 100 credits).",
+    "preview_one_usd": "$1 USD = {{credits}} credits",
+    "preview_thousand": "1,000 credits = ${{usd}}",
+    "saved": "Settings saved",
+    "invalid_credit_usd_rate": "Credit-to-USD rate must be a positive number (>= 0.000001)."
   }
 }

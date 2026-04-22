@@ -108,6 +108,27 @@ stub('../src/models/LedgerEntry', {
   create: async (doc) => ({ _id: 'l1', ...doc }),
 });
 
+const settingsState = { creditUsdRate: 0.01, lastUpdate: null };
+stub('../src/models/SystemSetting', {
+  getOrCreate: async () => ({
+    key: 'global',
+    billing: { creditUsdRate: settingsState.creditUsdRate },
+    toObject() { return { key: 'global', billing: { creditUsdRate: settingsState.creditUsdRate } }; },
+  }),
+  findOneAndUpdate: async (_filter, update) => {
+    const v = update && update.$set && update.$set['billing.creditUsdRate'];
+    if (typeof v === 'number') settingsState.creditUsdRate = v;
+    settingsState.lastUpdate = update;
+    return { key: 'global', billing: { creditUsdRate: settingsState.creditUsdRate } };
+  },
+});
+
+stub('../src/services/systemSettings', {
+  get: async () => ({ billing: { creditUsdRate: settingsState.creditUsdRate } }),
+  invalidate: () => {},
+  getCreditUsdRate: async () => settingsState.creditUsdRate,
+});
+
 stub('../src/services/billing', {
   MARGIN_KINDS: ['numberPurchase', 'numberMonthly', 'callPerMinute'],
   computeCredits: async () => ({ credits: 0, marginMode: 'percent', marginValue: 0, finalUsd: 0, providerCostUsd: 0 }),
@@ -162,6 +183,7 @@ function makeApp() {
   const app = express();
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, '..', 'src', 'views'));
+  app.use(express.urlencoded({ extended: true }));
   app.use((req, res, next) => {
     req.user = { _id: 'super1', isSuperAdmin: true, name: 'Super Admin', email: 'sa@example.com' };
     res.locals.user = req.user;
@@ -226,19 +248,28 @@ function getStatus(app, url) {
   });
 }
 
-function postRequest(app, url) {
+function postRequest(app, url, formBody) {
   return new Promise((resolve) => {
     const server = http.createServer(app);
     server.listen(0, '127.0.0.1', () => {
       const port = server.address().port;
+      let body = '';
+      const headers = { 'content-length': 0 };
+      if (formBody && typeof formBody === 'object') {
+        body = Object.keys(formBody)
+          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(formBody[k])}`)
+          .join('&');
+        headers['content-type'] = 'application/x-www-form-urlencoded';
+        headers['content-length'] = Buffer.byteLength(body);
+      }
       const req = http.request(
-        { method: 'POST', host: '127.0.0.1', port, path: url, headers: { 'content-length': 0 } },
+        { method: 'POST', host: '127.0.0.1', port, path: url, headers },
         (res) => {
-          let body = '';
-          res.on('data', (chunk) => (body += chunk));
+          let respBody = '';
+          res.on('data', (chunk) => (respBody += chunk));
           res.on('end', () => {
             server.close();
-            resolve({ status: res.statusCode, body, headers: res.headers });
+            resolve({ status: res.statusCode, body: respBody, headers: res.headers });
           });
         },
       );
@@ -246,6 +277,7 @@ function postRequest(app, url) {
         server.close();
         resolve({ status: 0, body: e.message, headers: {} });
       });
+      if (body) req.write(body);
       req.end();
     });
   });
@@ -262,6 +294,7 @@ test('admin smoke: every admin GET returns 200 for super-admin without membershi
     '/admin/accounts/a1/ledger',
     '/admin/providers',
     '/admin/providers/new',
+    '/admin/settings',
     '/admin/audit',
     '/admin/users',
   ];
@@ -343,6 +376,35 @@ test('provider-edit renders margin defaults section', async () => {
     assert.match(res.body, new RegExp(`name="margins\\.${kind}\\.value"`),
       `provider margin value for ${kind} must render`);
   }
+});
+
+test('admin/settings renders billing card with credit-rate input prefilled', async () => {
+  settingsState.creditUsdRate = 0.02;
+  const app = makeApp();
+  const res = await getStatus(app, '/admin/settings');
+  assert.strictEqual(res.status, 200);
+  assert.match(res.body, /name="billing\.creditUsdRate"/, 'credit usd rate input present');
+  assert.match(res.body, /id="creditUsdRate"/, 'credit usd rate input id present');
+  assert.match(res.body, /value="0\.02"/, 'input prefilled with stored rate');
+  assert.match(res.body, /href="\/admin\/settings"/, 'sidebar link to settings present');
+});
+
+test('POST /admin/settings updates the rate and redirects with saved=1', async () => {
+  settingsState.creditUsdRate = 0.01;
+  const app = makeApp();
+  const res = await postRequest(app, '/admin/settings', { 'billing.creditUsdRate': '0.005' });
+  assert.strictEqual(res.status, 302, `expected 302, got ${res.status}\n${res.body.slice(0, 400)}`);
+  assert.strictEqual(res.headers.location, '/admin/settings?saved=1');
+  assert.strictEqual(settingsState.creditUsdRate, 0.005, 'rate persisted');
+});
+
+test('POST /admin/settings rejects invalid rates with 400 + flash', async () => {
+  settingsState.creditUsdRate = 0.01;
+  const app = makeApp();
+  const res = await postRequest(app, '/admin/settings', { 'billing.creditUsdRate': '-1' });
+  assert.strictEqual(res.status, 400);
+  assert.match(res.body, /admin:settings\.invalid_credit_usd_rate/);
+  assert.strictEqual(settingsState.creditUsdRate, 0.01, 'rate unchanged on invalid input');
 });
 
 test('sidebar hides Workspace links for super-admin without an active membership', async () => {
