@@ -1,0 +1,72 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('postbacks.title') %></h1>
+    <p class="subtitle"><%= t('postbacks.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/postbacks/logs" class="btn-secondary btn"><span class="material-symbols-outlined">history</span> <%= t('actions.logs') %></a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="heading"><h2><%= t('postbacks.by_campaign') %></h2></div>
+  </div>
+
+  <% if (!campaigns.length) { %>
+    <div class="empty-state">
+      <span class="material-symbols-outlined">campaign</span>
+      <p><%= t('messages.no_records') %></p>
+    </div>
+  <% } %>
+
+  <div class="flex-col gap-md">
+    <% campaigns.forEach(function(c){ %>
+      <div class="card tight" style="background:var(--color-surface-low);border:1px solid var(--color-outline);">
+        <div class="card-header" style="border-block-end:none;padding-block-end:0;margin-block-end:var(--space-sm);">
+          <div class="heading">
+            <h2><%= c.name %></h2>
+            <small><%= (c.postbackConfigs||[]).length %> <%= t('postbacks.title').toLowerCase() %></small>
+          </div>
+          <div class="actions">
+            <% if (can('postback.manage')) { %>
+              <a class="btn-tertiary btn btn-sm" href="/postbacks/edit/<%= c._id %>"><%= t('actions.edit') %></a>
+            <% } %>
+          </div>
+        </div>
+
+        <% if (!c.postbackConfigs || !c.postbackConfigs.length) { %>
+          <p class="muted text-sm"><%= t('messages.no_records') %></p>
+        <% } else { %>
+          <div class="data-table-wrap">
+            <table class="data-table density-compact">
+              <thead>
+                <tr>
+                  <th><%= t('labels.name') %></th>
+                  <th><%= t('labels.method') %></th>
+                  <th><%= t('labels.url') %></th>
+                  <th><%= t('labels.triggers') %></th>
+                  <th><%= t('labels.status') %></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% c.postbackConfigs.forEach(function(p){ %>
+                  <tr>
+                    <td><strong><%= p.name %></strong></td>
+                    <td><span class="badge badge--neutral"><%= p.method %></span></td>
+                    <td class="text-mono" style="max-inline-size:24rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= p.url %></td>
+                    <td><small><%= (p.triggers||[]).join(', ') %></small></td>
+                    <td><span class="badge <%= p.enabled?'badge--success':'badge--neutral' %>"><%= p.enabled ? t('status.active') : t('status.paused') %></span></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<%- include('../partials/footer') %>

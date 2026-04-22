@@ -1,0 +1,50 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('admin:audit.title') %></h1>
+    <p class="subtitle"><%= t('admin:audit.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/admin" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+  </div>
+</div>
+
+<div class="card tight">
+  <% if (!logs.length) { %>
+    <div class="empty-state"><span class="material-symbols-outlined">history</span><p><%= t('messages.no_records') %></p></div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('admin:audit.when') %></th>
+            <th><%= t('admin:audit.actor') %></th>
+            <th><%= t('admin:audit.account') %></th>
+            <th><%= t('admin:audit.action') %></th>
+            <th><%= t('admin:audit.entity') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% logs.forEach(function(l){ %>
+            <tr>
+              <td><small><%= new Date(l.createdAt).toLocaleString(locale) %></small></td>
+              <td>
+                <% if (l.actorId) { %>
+                  <strong><%= l.actorId.name %></strong>
+                  <small class="muted"><%= l.actorId.email %></small>
+                <% } else { %>
+                  <small class="muted">—</small>
+                <% } %>
+              </td>
+              <td><small><%= l.accountId ? l.accountId.name : '—' %></small></td>
+              <td><span class="badge badge--neutral text-mono"><%= l.action %></span></td>
+              <td><small><%= l.entity %></small></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

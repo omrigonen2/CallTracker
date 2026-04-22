@@ -1,0 +1,263 @@
+{
+  "app_name": "מעקב שיחות",
+  "open_menu": "פתיחת תפריט",
+  "system_online": "המערכת פעילה",
+  "live": "חי",
+  "collapse_sidebar": "כיווץ סרגל צד",
+  "loading": "טוען…",
+  "nav_sections": {
+    "workspace": "מרחב עבודה",
+    "management": "ניהול",
+    "system_admin": "ניהול מערכת"
+  },
+  "nav": {
+    "dashboard": "לוח בקרה",
+    "campaigns": "קמפיינים",
+    "numbers": "מספרים",
+    "calls": "שיחות",
+    "analytics": "אנליטיקה",
+    "postbacks": "פוסטבקים",
+    "users": "משתמשים",
+    "roles": "תפקידים",
+    "account": "חשבון",
+    "profile": "פרופיל",
+    "admin": "ניהול",
+    "logout": "התנתקות"
+  },
+  "actions": {
+    "create": "יצירה",
+    "save": "שמירה",
+    "cancel": "ביטול",
+    "delete": "מחיקה",
+    "edit": "עריכה",
+    "back": "חזרה",
+    "search": "חיפוש",
+    "filter": "סינון",
+    "export": "ייצוא",
+    "submit": "שליחה",
+    "yes": "כן",
+    "no": "לא",
+    "switch_account": "החלפת חשבון",
+    "view_all": "הצג הכל",
+    "view_all_logs": "הצג את כל היומן",
+    "export_csv": "ייצוא CSV",
+    "export_pdf": "ייצוא PDF",
+    "new": "חדש",
+    "add": "הוספה",
+    "remove": "הסרה",
+    "open": "פתיחה",
+    "buy": "רכישה",
+    "view": "צפייה",
+    "join": "הצטרפות",
+    "logs": "יומן",
+    "invite": "הזמנה",
+    "release": "שחרור",
+    "enable": "הפעלה",
+    "disable": "השבתה",
+    "revoke": "ביטול"
+  },
+  "labels": {
+    "name": "שם",
+    "email": "דוא\"ל",
+    "password": "סיסמה",
+    "language": "שפה",
+    "timezone": "אזור זמן",
+    "status": "סטטוס",
+    "created_at": "נוצר",
+    "updated_at": "עודכן",
+    "actions": "פעולות",
+    "destination": "יעד",
+    "tracking_number": "מספר מעקב",
+    "label": "תווית",
+    "type": "סוג",
+    "permissions": "הרשאות",
+    "expires": "פג תוקף",
+    "role": "תפקיד",
+    "country": "מדינה",
+    "area_code": "קידומת",
+    "region": "אזור",
+    "provider": "ספק",
+    "method": "שיטה",
+    "url": "כתובת",
+    "triggers": "טריגרים",
+    "key": "מפתח",
+    "details": "פרטים",
+    "country_code": "קידומת מדינה",
+    "default_country": "מדינת ברירת מחדל"
+  },
+  "status": {
+    "active": "פעיל",
+    "paused": "מושהה",
+    "suspended": "מושעה",
+    "deleted": "נמחק",
+    "released": "שוחרר",
+    "in_pool": "בבריכה",
+    "answered": "נענה",
+    "missed": "פספוס",
+    "in_progress": "בתהליך",
+    "completed": "הושלם",
+    "ringing": "מצלצל",
+    "failed": "נכשל",
+    "ok": "תקין",
+    "fail": "נכשל"
+  },
+  "language_names": {
+    "en": "English",
+    "he": "עברית"
+  },
+  "kpi": {
+    "total_calls": "סה\"כ שיחות",
+    "answered_calls": "שיחות שנענו",
+    "answer_rate": "אחוז מענה",
+    "avg_duration": "משך ממוצע",
+    "conversion_rate": "שיעור המרה",
+    "campaigns": "קמפיינים",
+    "active_numbers": "מספרים פעילים",
+    "vs_last_period": "מול תקופה קודמת",
+    "rate": "אחוז",
+    "last_30d": "30 ימים אחרונים",
+    "last_24h": "24 שעות אחרונות"
+  },
+  "delta": {
+    "up": "במגמת עלייה",
+    "down": "במגמת ירידה"
+  },
+  "messages": {
+    "saved": "נשמר",
+    "no_records": "אין רשומות עדיין."
+  },
+  "density": {
+    "compact": "צפוף",
+    "comfortable": "נוח",
+    "spacious": "מרווח"
+  },
+  "type": {
+    "system": "מערכת",
+    "custom": "מותאם"
+  },
+  "days": {
+    "mon": "ב'",
+    "tue": "ג'",
+    "wed": "ד'",
+    "thu": "ה'",
+    "fri": "ו'",
+    "sat": "ש'",
+    "sun": "א'"
+  },
+  "dashboard": {
+    "subtitle": "ביצועי שיחות השיווק שלך במבט מהיר.",
+    "call_volume": "נפח שיחות לאורך זמן",
+    "call_volume_sub": "שיחות נכנסות יומיות בכל הקמפיינים.",
+    "top_sources": "מקורות לידים מובילים",
+    "top_sources_sub": "הקמפיינים המובילים בתקופה.",
+    "live_call_feed": "פיד שיחות חי",
+    "view_full_logs": "הצג את כל יומן השיחות"
+  },
+  "numbers": {
+    "title": "מספרי מעקב",
+    "subtitle": "ספק מספרי Twilio ונתב שיחות נכנסות לקווי המכירות.",
+    "buy_title": "רכישת מספר מעקב",
+    "no_provider": "לא הוגדרו פרטי ספק. בקש מסופר-אדמין להוסיף פרטי Twilio בקונסולת הניהול.",
+    "override": "עקיפת העברה",
+    "fields": {
+      "number_type": "סוג מספר",
+      "limit": "תוצאות",
+      "area_code": "קידומת",
+      "area_code_help": "ספרות בלבד, לדוגמה 415",
+      "contains": "מכיל",
+      "contains_help": "התאמת ספרות בכל מקום במספר"
+    },
+    "number_types": {
+      "local": "מקומי",
+      "tollFree": "ללא תשלום",
+      "mobile": "סלולרי"
+    },
+    "dni": {
+      "title": "תצורת DNI",
+      "subtitle": "קיבולת מאגר שיבוץ מספרים דינמי.",
+      "capacity": "{{used}} מתוך {{total}} מספרים בשימוש"
+    },
+    "allocation": {
+      "title": "הקצאה חודשית",
+      "subtitle": "מספרים שסופקו החודש."
+    }
+  },
+  "postbacks": {
+    "title": "פוסטבקים",
+    "subtitle": "העברת אירועי שיחה אל ה-CRM, מערכת ייחוס או webhook.",
+    "by_campaign": "לפי קמפיין",
+    "logs": "יומן פוסטבקים",
+    "logs_subtitle": "הפוסטבקים האחרונים שנשלחו.",
+    "edit_for": "עריכת פוסטבקים עבור {{name}}",
+    "fields": {
+      "name": "שם",
+      "url": "כתובת URL",
+      "method": "שיטה",
+      "triggers": "טריגרים",
+      "triggers_help": "בחר אילו אירועי שיחה ישלחו את הפוסטבק.",
+      "enabled": "פעיל"
+    },
+    "triggers": {
+      "call_started": "שיחה החלה",
+      "call_answered": "שיחה נענתה",
+      "call_completed": "שיחה הסתיימה",
+      "call_qualified": "שיחה איכותית",
+      "call_tagged": "שיחה תויגה"
+    },
+    "add": "הוספת פוסטבק",
+    "log_fields": {
+      "when": "מתי",
+      "trigger": "טריגר",
+      "url": "URL",
+      "status": "סטטוס",
+      "ok": "תקין",
+      "attempt": "ניסיון"
+    }
+  },
+  "analytics": {
+    "title": "אנליטיקה",
+    "subtitle": "תובנות ביצוע מ-30 הימים האחרונים.",
+    "by_campaign": "לפי קמפיין",
+    "by_campaign_sub": "נפח, שיחות איכותיות ושיחות מומרות לכל קמפיין.",
+    "daily_volume": "נפח שיחות יומי",
+    "daily_volume_sub": "מגמת שיחות נכנסות.",
+    "fields": {
+      "campaign": "קמפיין",
+      "calls": "שיחות",
+      "total_duration": "סה\"כ משך",
+      "qualified": "איכותיות",
+      "converted": "המרות",
+      "date": "תאריך"
+    }
+  },
+  "users": {
+    "title": "משתמשים",
+    "subtitle": "ניהול חברי מרחב העבודה, תפקידים והזמנות ממתינות.",
+    "members": "חברים",
+    "pending_invitations": "הזמנות ממתינות",
+    "invite_title": "הזמנת משתמש"
+  },
+  "roles": {
+    "title": "תפקידים",
+    "subtitle": "חבילות הרשאות שניתן לשייך לחברי מרחב העבודה.",
+    "new": "תפקיד חדש",
+    "edit_title": "עריכת תפקיד",
+    "create_title": "יצירת תפקיד",
+    "view_title": "צפייה בתפקיד",
+    "key_label": "מפתח",
+    "permissions_label": "הרשאות",
+    "key_help": "מזהה באותיות קטנות לשימוש פנימי; לא ניתן לשנות מאוחר יותר.",
+    "permissions_help": "בחר את הפעולות שחברי תפקיד זה יוכלו לבצע."
+  },
+  "account": {
+    "title": "הגדרות חשבון",
+    "subtitle": "שם מרחב, שפה ברירת מחדל ואזור זמן.",
+    "default_country_help": "משמשת כקידומת ברירת המחדל בעת הזנת מספרי טלפון וחיפוש מספרי מעקב."
+  },
+  "profile": {
+    "title": "הפרופיל שלך",
+    "subtitle": "עדכון פרטים אישיים וסיסמה.",
+    "new_password": "סיסמה חדשה",
+    "leave_blank": "השאר ריק כדי לשמור את הסיסמה הנוכחית."
+  }
+}

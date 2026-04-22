@@ -1,0 +1,72 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('analytics.title') %></h1>
+    <p class="subtitle"><%= t('analytics.subtitle') %></p>
+  </div>
+</div>
+
+<%
+  var dailyChart = {
+    type: 'line',
+    labels: daily.map(function(d){ return d._id; }),
+    series: [{ label: t('analytics.daily_volume'), data: daily.map(function(d){ return d.count; }) }]
+  };
+%>
+
+<div class="chart-card">
+  <div class="chart-card-header">
+    <div>
+      <h2><%= t('analytics.daily_volume') %></h2>
+      <small><%= t('analytics.daily_volume_sub') %></small>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-swatch" style="background:#0D9488"></span> <%= t('nav.calls') %></span>
+    </div>
+  </div>
+  <div class="canvas-wrap">
+    <canvas data-chart='<%- JSON.stringify(dailyChart) %>'></canvas>
+  </div>
+</div>
+
+<div class="card tight">
+  <div class="card-header">
+    <div class="heading">
+      <h2><%= t('analytics.by_campaign') %></h2>
+      <small><%= t('analytics.by_campaign_sub') %></small>
+    </div>
+  </div>
+  <% if (!byCampaign.length) { %>
+    <div class="empty-state">
+      <span class="material-symbols-outlined">analytics</span>
+      <p><%= t('messages.no_records') %></p>
+    </div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('analytics.fields.campaign') %></th>
+            <th class="num"><%= t('analytics.fields.calls') %></th>
+            <th class="num"><%= t('analytics.fields.total_duration') %></th>
+            <th class="num"><%= t('analytics.fields.qualified') %></th>
+            <th class="num"><%= t('analytics.fields.converted') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% byCampaign.forEach(function(r){ %>
+            <tr>
+              <td><strong><%= r.name %></strong></td>
+              <td class="num"><%= r.count.toLocaleString(locale) %></td>
+              <td class="num"><%= r.totalDuration %>s</td>
+              <td class="num"><%= r.qualified %></td>
+              <td class="num"><%= r.converted %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

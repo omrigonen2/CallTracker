@@ -1,0 +1,44 @@
+{
+  "title": "שיחות",
+  "report_title": "דוח יומני שיחות",
+  "report_subtitle": "ניתוח של כל נקודת ייחוס משיווק נכנס.",
+  "live_call_feed": "פיד שיחות חי",
+  "answer_rate": "אחוז מענה",
+  "based_on": "מבוסס על {{count}} שיחות בתקופה",
+  "rows_per_page": "שורות לעמוד",
+  "showing_range": "מציג {{from}} עד {{to}} מתוך {{total}}",
+  "filters": {
+    "campaign": "קמפיין",
+    "min_duration": "משך מינימלי (שניות)",
+    "tag": "תגית",
+    "all": "הכל",
+    "time_period": "טווח זמן",
+    "start_date": "תאריך התחלה",
+    "end_date": "תאריך סיום",
+    "source": "מקור"
+  },
+  "fields": {
+    "caller": "מתקשר",
+    "destination": "יעד",
+    "duration": "משך",
+    "status": "סטטוס",
+    "outcome": "תוצאה",
+    "tags": "תגיות",
+    "notes": "הערות",
+    "recording": "הקלטה",
+    "source": "מקור",
+    "time_date": "זמן / תאריך"
+  },
+  "outcomes": {
+    "converted": "המרה",
+    "not_relevant": "לא רלוונטי",
+    "spam": "ספאם",
+    "none": "—"
+  },
+  "actions": {
+    "add_tag": "הוסף תגית",
+    "save_note": "שמור הערה",
+    "set_outcome": "קבע תוצאה",
+    "play": "ניגון הקלטה"
+  }
+}

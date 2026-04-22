@@ -1,0 +1,24 @@
+{
+  "title": "קמפיינים",
+  "subtitle": "קבץ מספרי מעקב, הגדר ניתוב ייעודי וייחוס.",
+  "new": "קמפיין חדש",
+  "edit": "עריכת קמפיין",
+  "settings": "הגדרות קמפיין",
+  "fields": {
+    "name": "שם",
+    "default_forwarding": "מספר העברה ברירת מחדל",
+    "fallback": "מספר גיבוי",
+    "timezone": "אזור זמן",
+    "record_calls": "הקלטת שיחות",
+    "qualified_seconds": "סף שיחה איכותית",
+    "whisper_enabled": "הפעלת לחישה לסוכן",
+    "ivr_enabled": "הפעלת IVR בסיסי",
+    "routing_rules": "כללי ניתוב לפי זמן",
+    "rule_days": "ימים",
+    "rule_start": "שעת התחלה",
+    "rule_end": "שעת סיום",
+    "rule_forward": "העבר אל"
+  },
+  "add_rule": "הוסף כלל",
+  "delete_confirm": "למחוק את הקמפיין?"
+}

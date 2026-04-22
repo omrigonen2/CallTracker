@@ -1,0 +1,11 @@
+<%- include('../partials/header_auth') %>
+<section class="auth-card">
+  <%- include('../partials/auth_brand') %>
+  <h1><%= t('errors:500.title') %></h1>
+  <p class="auth-subtitle"><%= t('errors:500.body') %></p>
+  <% if (typeof message !== 'undefined' && message) { %>
+    <pre style="margin-block-start:var(--space-md);background:var(--color-surface-low);padding:var(--space-md);border-radius:var(--radius-sm);overflow:auto;font-size:12px;"><%= message %></pre>
+  <% } %>
+  <div class="auth-foot"><a href="/"><%= t('actions.back') %></a></div>
+</section>
+<%- include('../partials/footer_auth') %>

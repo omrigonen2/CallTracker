@@ -1,0 +1,79 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= cred ? t('admin:providers.rotate') : t('admin:providers.new') %></h1>
+    <p class="subtitle"><%= t('admin:providers.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/admin/providers" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+  </div>
+</div>
+
+<form method="post" action="<%= cred ? '/admin/providers/' + cred._id : '/admin/providers' %>" class="flex-col gap-md" style="max-inline-size:720px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="heading"><h2><%= t('labels.details') %></h2></div>
+    </div>
+    <div class="grid-2">
+      <% if (!cred) { %>
+        <div class="row">
+          <label for="provider"><%= t('admin:providers.provider') %></label>
+          <select id="provider" name="provider"><option value="twilio">twilio</option></select>
+        </div>
+      <% } else { %>
+        <div class="row">
+          <label><%= t('admin:providers.provider') %></label>
+          <div><span class="badge badge--brand text-mono"><%= cred.provider %></span></div>
+        </div>
+      <% } %>
+      <div class="row">
+        <label for="label"><%= t('admin:providers.label') %></label>
+        <input id="label" name="label" required value="<%= cred ? cred.label : '' %>">
+      </div>
+    </div>
+    <div class="row">
+      <label class="checkbox-label">
+        <input type="checkbox" name="isDefault" <%= cred && cred.isDefault ? 'checked' : '' %>>
+        <span><%= t('admin:providers.is_default') %></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="heading">
+        <h2>Twilio credentials</h2>
+        <% if (cred) { %><small><%= t('admin:providers.rotate') %></small><% } %>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="row">
+        <label for="accountSid"><%= t('admin:providers.fields.account_sid') %></label>
+        <input id="accountSid" name="accountSid" autocomplete="off" <%= cred ? '' : 'required' %>>
+      </div>
+      <div class="row">
+        <label for="authToken"><%= t('admin:providers.fields.auth_token') %></label>
+        <input id="authToken" name="authToken" type="password" autocomplete="new-password" <%= cred ? '' : 'required' %>>
+      </div>
+      <div class="row">
+        <label for="apiKey"><%= t('admin:providers.fields.api_key') %></label>
+        <input id="apiKey" name="apiKey" autocomplete="off">
+      </div>
+      <div class="row">
+        <label for="apiSecret"><%= t('admin:providers.fields.api_secret') %></label>
+        <input id="apiSecret" name="apiSecret" type="password" autocomplete="new-password">
+      </div>
+    </div>
+    <div class="row">
+      <label for="signingSecret"><%= t('admin:providers.fields.signing_secret') %></label>
+      <input id="signingSecret" name="signingSecret" type="password" autocomplete="new-password">
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn"><span class="material-symbols-outlined">save</span> <%= t('actions.save') %></button>
+    <a href="/admin/providers" class="btn-secondary btn"><%= t('actions.cancel') %></a>
+  </div>
+</form>
+<%- include('../partials/footer') %>

@@ -1,0 +1,103 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('numbers.buy_title') %></h1>
+    <p class="subtitle"><%= t('numbers.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/numbers" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+  </div>
+</div>
+
+<% if (!activeProviders.length) { %>
+  <div class="flash flash-error"><%= t('numbers.no_provider') %></div>
+<% } else { %>
+  <%
+    var NUMBER_TYPES = ['local', 'tollFree', 'mobile'];
+    var LIMIT_OPTIONS = [10, 20, 50];
+  %>
+  <form method="get" action="/numbers/buy" class="filter-bar">
+    <div class="filter-field">
+      <label><%= t('labels.provider') %></label>
+      <select name="provider" required>
+        <% activeProviders.forEach(function(p){ %>
+          <option value="<%= p %>" <%= p===provider?'selected':'' %>><%= p %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label><%= t('labels.country') %></label>
+      <select name="countryCode" required>
+        <% countries.forEach(function(c){ %>
+          <option value="<%= c.iso %>" <%= countryCode===c.iso?'selected':'' %>><%= c.name %> (+<%= c.dial %>)</option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label><%= t('numbers.fields.number_type') %></label>
+      <select name="numberType">
+        <% NUMBER_TYPES.forEach(function(nt){ %>
+          <option value="<%= nt %>" <%= numberType===nt?'selected':'' %>><%= t('numbers.number_types.' + nt) %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label><%= t('labels.area_code') %></label>
+      <input type="text" name="areaCode" value="<%= areaCode %>" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="<%= t('numbers.fields.area_code_help') %>">
+    </div>
+    <div class="filter-field">
+      <label><%= t('numbers.fields.contains') %></label>
+      <input type="text" name="contains" value="<%= contains %>" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="<%= t('numbers.fields.contains_help') %>">
+    </div>
+    <div class="filter-field">
+      <label><%= t('numbers.fields.limit') %></label>
+      <select name="limit">
+        <% LIMIT_OPTIONS.forEach(function(lo){ %>
+          <option value="<%= lo %>" <%= String(limit)===String(lo)?'selected':'' %>><%= lo %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="actions">
+      <button type="submit" name="search" value="1" class="btn"><span class="material-symbols-outlined">search</span> <%= t('actions.search') %></button>
+    </div>
+  </form>
+
+  <% if (error) { %><div class="flash flash-error"><%= error %></div><% } %>
+
+  <% if (available.length) { %>
+    <div class="card tight">
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><%= t('labels.tracking_number') %></th>
+              <th><%= t('labels.region') %></th>
+              <th class="actions-cell"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% available.forEach(function(n){ %>
+              <tr>
+                <td><strong class="text-mono"><%= n.phoneNumber %></strong></td>
+                <td><small><%= n.locality %> <%= n.region %></small></td>
+                <td class="actions-cell">
+                  <form method="post" action="/numbers/buy" class="inline">
+                    <input type="hidden" name="provider" value="<%= provider %>">
+                    <input type="hidden" name="phoneNumber" value="<%= n.phoneNumber %>">
+                    <select name="campaignId">
+                      <option value="">—</option>
+                      <% campaigns.forEach(function(c){ %><option value="<%= c._id %>"><%= c.name %></option><% }) %>
+                    </select>
+                    <button type="submit" class="btn btn-sm"><%= t('actions.buy') %></button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+<% } %>
+<%- include('../partials/footer') %>

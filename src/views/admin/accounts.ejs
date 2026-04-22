@@ -1,0 +1,57 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('admin:accounts.title') %></h1>
+    <p class="subtitle"><%= t('admin:accounts.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/admin" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+    <a href="/admin/accounts/new" class="btn"><span class="material-symbols-outlined">add</span> <%= t('admin:accounts.new') %></a>
+  </div>
+</div>
+
+<div class="card tight">
+  <% if (!accountList.length) { %>
+    <div class="empty-state"><span class="material-symbols-outlined">corporate_fare</span><p><%= t('messages.no_records') %></p></div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('labels.name') %></th>
+            <th><%= t('labels.key') %></th>
+            <th><%= t('labels.status') %></th>
+            <th><%= t('labels.created_at') %></th>
+            <th class="actions-cell"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% accountList.forEach(function(a){
+               var stCls = a.status==='active' ? 'badge--success' : (a.status==='suspended' ? 'badge--warning' : 'badge--neutral');
+          %>
+            <tr>
+              <td><a href="/admin/accounts/<%= a._id %>"><strong><%= a.name %></strong></a></td>
+              <td><span class="text-mono text-sm"><%= a.slug %></span></td>
+              <td><span class="badge <%= stCls %>"><%= t('status.' + a.status) %></span></td>
+              <td><small><%= new Date(a.createdAt).toLocaleDateString(locale) %></small></td>
+              <td class="actions-cell">
+                <a class="btn-tertiary btn btn-sm" href="/admin/accounts/<%= a._id %>"><%= t('actions.open') %></a>
+                <a class="btn-tertiary btn btn-sm" href="/admin/accounts/<%= a._id %>/edit"><%= t('actions.edit') %></a>
+                <% if (a.status !== 'deleted') { %>
+                  <form method="post" action="/admin/accounts/<%= a._id %>/use" class="inline">
+                    <button type="submit" class="btn btn-sm" title="<%= t('admin:accounts.use_help') %>">
+                      <span class="material-symbols-outlined">login</span>
+                      <%= t('admin:accounts.use') %>
+                    </button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

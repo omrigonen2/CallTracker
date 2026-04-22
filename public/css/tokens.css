@@ -1,0 +1,93 @@
+/* ============================================================================
+ * Stitch design tokens — Marketing Call Tracking Platform
+ * Strategic Growth System: Deep Navy + Vibrant Teal + Bright Blue on light grey.
+ * ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Heebo:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined');
+
+:root {
+  /* Surfaces */
+  --color-bg:             #f7f9fb;
+  --color-surface:        #ffffff;
+  --color-surface-low:    #f2f4f6;
+  --color-surface-high:   #e6e8ea;
+  --color-surface-highest: #e0e3e5;
+  --color-on-surface:     #191c1e;
+  --color-on-surface-mut: #45464d;
+  --color-outline:        #c6c6cd;
+  --color-outline-strong: #76777d;
+  --color-row-hover:      #F1F5F9;
+
+  /* Brand */
+  --color-primary:        #0F172A; /* Deep Navy */
+  --color-primary-soft:   #1e293b;
+  --color-on-primary:     #ffffff;
+  --color-secondary:      #0D9488; /* Vibrant Teal */
+  --color-secondary-soft: #ccfbf1;
+  --color-on-secondary:   #ffffff;
+  --color-tertiary:       #3B82F6; /* Bright Blue */
+  --color-tertiary-soft:  #dbeafe;
+  --color-on-tertiary:    #ffffff;
+
+  /* Status */
+  --color-success:        #10B981;
+  --color-success-soft:   #d1fae5;
+  --color-warning:        #F59E0B;
+  --color-warning-soft:   #fef3c7;
+  --color-danger:         #ba1a1a;
+  --color-danger-soft:    #fee2e2;
+  --color-info:           #3B82F6;
+  --color-info-soft:      #dbeafe;
+
+  /* Sidebar (always Deep Navy regardless of color mode) */
+  --color-sidebar-bg:     #0F172A;
+  --color-sidebar-fg:     #cbd5e1;
+  --color-sidebar-fg-mut: #94a3b8;
+  --color-sidebar-active-bg: #1e293b;
+  --color-sidebar-active-fg: #ffffff;
+  --color-sidebar-divider: #1e293b;
+
+  /* Radius */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-pill: 9999px;
+
+  /* Spacing (4px baseline) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --gutter: 24px;
+
+  /* Sidebar metrics */
+  --sidebar-w: 240px;
+  --sidebar-w-collapsed: 64px;
+  --topbar-h: 64px;
+
+  /* Typography */
+  --font-sans: 'Inter', 'Heebo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Inter', ui-monospace, 'SF Mono', Consolas, monospace;
+
+  --fs-display-lg: 36px;
+  --fs-headline-md: 24px;
+  --fs-title-sm: 18px;
+  --fs-body-md: 16px;
+  --fs-body-sm: 14px;
+  --fs-data-mono: 14px;
+  --fs-label-caps: 12px;
+
+  /* Elevation (subtle, per Stitch tonal-layering guidance) */
+  --shadow-overlay: 0 8px 24px rgba(15, 23, 42, .10);
+  --shadow-card: 0 1px 0 rgba(15, 23, 42, .03);
+}
+
+/* Hebrew prefers Heebo as its primary face. */
+[lang="he"] {
+  --font-sans: 'Heebo', 'Inter', system-ui, sans-serif;
+}

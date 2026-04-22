@@ -1,0 +1,69 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= role ? t('actions.edit') + ' · ' + role.name : t('roles.new') %></h1>
+    <p class="subtitle"><%= t('roles.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/roles" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+  </div>
+</div>
+
+<% if (error) { %><div class="flash flash-error"><%= t('errors:403.' + error) %></div><% } %>
+
+<form method="post" action="<%= role ? '/roles/' + role._id : '/roles' %>" class="flex-col gap-md">
+  <div class="card">
+    <div class="card-header">
+      <div class="heading"><h2><%= t('labels.details') %></h2></div>
+    </div>
+    <div class="grid-2">
+      <div class="row">
+        <label><%= t('labels.name') %></label>
+        <input name="name" value="<%= role ? role.name : '' %>" <%= role && role.isSystem ? 'disabled' : '' %> required>
+      </div>
+      <% if (!role) { %>
+        <div class="row">
+          <label><%= t('labels.key') %></label>
+          <input name="key" required>
+          <small class="help-text"><%= t('roles.key_help') %></small>
+        </div>
+      <% } else { %>
+        <div class="row">
+          <label><%= t('labels.type') %></label>
+          <div><span class="badge <%= role.isSystem?'badge--brand':'badge--neutral' %>"><%= role.isSystem ? t('type.system') : t('type.custom') %></span></div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="heading">
+        <h2><%= t('labels.permissions') %></h2>
+        <small><%= t('roles.permissions_help') %></small>
+      </div>
+    </div>
+    <div class="perm-grid">
+      <% Object.keys(groups).forEach(function(g){ %>
+        <div class="perm-group">
+          <h4><%= g %></h4>
+          <% groups[g].forEach(function(p){ %>
+            <label class="checkbox-label">
+              <input type="checkbox" name="permissions" value="<%= p %>"
+                <%= role && role.permissions && role.permissions.indexOf(p)!==-1 ? 'checked' : '' %>
+                <%= role && role.isSystem ? 'disabled' : '' %>>
+              <span class="text-mono text-sm"><%= p %></span>
+            </label>
+          <% }) %>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <% if (!role || !role.isSystem) { %><button type="submit" class="btn"><span class="material-symbols-outlined">save</span> <%= t('actions.save') %></button><% } %>
+    <a href="/roles" class="btn-secondary btn"><%= t('actions.cancel') %></a>
+  </div>
+</form>
+<%- include('../partials/footer') %>

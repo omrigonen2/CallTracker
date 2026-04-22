@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('users.invite_title') %></h1>
+    <p class="subtitle"><%= t('users.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/users" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+  </div>
+</div>
+
+<form method="post" action="/users/invite" class="card" style="max-inline-size:560px;">
+  <div class="row">
+    <label for="email"><%= t('labels.email') %></label>
+    <input id="email" type="email" name="email" required>
+  </div>
+  <div class="row">
+    <label><%= t('nav.roles') %></label>
+    <div class="flex-col gap-sm">
+      <% roles.forEach(function(r){ %>
+        <label class="checkbox-label"><input type="checkbox" name="roleIds" value="<%= r._id %>"> <span><%= r.name %></span></label>
+      <% }) %>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn"><%= t('actions.invite') %></button>
+    <a class="btn-secondary btn" href="/users"><%= t('actions.cancel') %></a>
+  </div>
+</form>
+<%- include('../partials/footer') %>

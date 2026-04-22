@@ -1,0 +1,14 @@
+<div class="auth-lang">
+  <form method="post" action="/lang">
+    <input type="hidden" name="redirect" value="<%= currentUrl || '/' %>">
+    <select name="locale" onchange="this.form.submit()" aria-label="<%= t('labels.language') %>">
+      <% locales.forEach(function(l){ %>
+        <option value="<%= l %>" <%= l===locale?'selected':'' %>><%= t('language_names.' + l) %></option>
+      <% }) %>
+    </select>
+  </form>
+</div>
+<div class="auth-brand">
+  <span class="brand-mark"><span class="material-symbols-outlined" aria-hidden="true">call</span></span>
+  <span><%= t('app_name') %></span>
+</div>

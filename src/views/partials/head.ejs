@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="<%= locale %>" dir="<%= dir %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= typeof pageTitle !== 'undefined' && pageTitle ? pageTitle + ' · ' : '' %><%= t('app_name') %></title>
+  <link rel="stylesheet" href="/css/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+  <script src="/js/app.js" defer></script>
+  <script src="/js/charts.js" defer></script>
+</head>
+<body class="<%= dir %>">

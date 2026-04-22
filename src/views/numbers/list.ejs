@@ -1,0 +1,111 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('numbers.title') %></h1>
+    <p class="subtitle"><%= t('numbers.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <% if (can('number.purchase')) { %>
+      <a href="/numbers/buy" class="btn"><span class="material-symbols-outlined">add</span> <%= t('actions.new') %></a>
+    <% } %>
+  </div>
+</div>
+
+<%
+  var totalCapacity = numbers.length || 1;
+  var inUse = numbers.filter(function(n){ return n.status === 'active' && n.campaignId; }).length;
+  var pct = Math.round((inUse / totalCapacity) * 100);
+
+  var monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+  var thisMonth = numbers.filter(function(n){ return new Date(n.createdAt) >= monthStart; }).length;
+%>
+
+<div class="grid-cols-2">
+  <div class="card tight">
+    <% if (!numbers.length) { %>
+      <div class="empty-state">
+        <span class="material-symbols-outlined">dialpad</span>
+        <p><%= t('messages.no_records') %></p>
+      </div>
+    <% } else { %>
+      <div class="data-table-wrap">
+        <table class="data-table density-comfortable">
+          <thead>
+            <tr>
+              <th><%= t('labels.tracking_number') %></th>
+              <th><%= t('nav.campaigns') %></th>
+              <th><%= t('labels.status') %></th>
+              <th class="actions-cell"><%= t('labels.actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% numbers.forEach(function(n){ var stCls = n.status==='active' ? 'badge--success' : (n.status==='released' ? 'badge--neutral' : 'badge--warning'); %>
+              <tr>
+                <td><strong class="text-mono"><%= n.phoneNumber %></strong></td>
+                <td>
+                  <% if (can('number.assign')) { %>
+                    <form method="post" action="/numbers/<%= n._id %>/assign" class="inline" style="gap:var(--space-xs); flex-wrap:wrap;">
+                      <select name="campaignId">
+                        <option value="">—</option>
+                        <% campaigns.forEach(function(c){ %>
+                          <option value="<%= c._id %>" <%= n.campaignId && String(n.campaignId._id||n.campaignId)===String(c._id) ? 'selected' : '' %>><%= c.name %></option>
+                        <% }) %>
+                      </select>
+                      <div style="inline-size:18rem; max-inline-size:100%;">
+                        <%- include('../partials/phone_input', { base: 'forwardingOverride', value: n.forwardingOverride || '', placeholder: t('numbers.override') }) %>
+                      </div>
+                      <button type="submit" class="btn-secondary btn btn-sm"><%= t('actions.save') %></button>
+                    </form>
+                  <% } else { %>
+                    <%= n.campaignId && n.campaignId.name || '—' %>
+                  <% } %>
+                </td>
+                <td><span class="badge <%= stCls %>"><%= t('status.' + n.status) %></span></td>
+                <td class="actions-cell">
+                  <% if (can('number.release') && n.status === 'active') { %>
+                    <form method="post" action="/numbers/<%= n._id %>/release" class="inline" data-confirm="<%= t('actions.release') %>?">
+                      <button type="submit" class="link-btn" style="color:var(--color-danger);font-weight:600;"><%= t('actions.release') %></button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="flex-col gap-md">
+    <div class="card">
+      <div class="card-header">
+        <div class="heading">
+          <h2><%= t('numbers.dni.title') %></h2>
+          <small><%= t('numbers.dni.subtitle') %></small>
+        </div>
+      </div>
+      <div class="capacity-meter">
+        <div class="track"><div class="fill" style="inline-size: <%= pct %>%;"></div></div>
+        <div class="meta">
+          <span><%= t('numbers.dni.capacity', { used: inUse, total: numbers.length }) %></span>
+          <strong><%= pct %>%</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="heading">
+          <h2><%= t('numbers.allocation.title') %></h2>
+          <small><%= t('numbers.allocation.subtitle') %></small>
+        </div>
+      </div>
+      <div class="kpi-card" style="border:none;padding:0;">
+        <div class="kpi-value"><%= thisMonth %></div>
+        <div class="kpi-meta"><%= t('kpi.last_30d') %></div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/footer') %>

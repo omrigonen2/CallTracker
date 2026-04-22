@@ -1,0 +1,24 @@
+{
+  "title": "Campaigns",
+  "subtitle": "Group your tracking numbers, set forwarding rules and configure attribution.",
+  "new": "New campaign",
+  "edit": "Edit campaign",
+  "settings": "Campaign settings",
+  "fields": {
+    "name": "Name",
+    "default_forwarding": "Default forwarding number",
+    "fallback": "Fallback number",
+    "timezone": "Timezone",
+    "record_calls": "Record calls",
+    "qualified_seconds": "Qualified call threshold",
+    "whisper_enabled": "Enable call whisper",
+    "ivr_enabled": "Enable basic IVR",
+    "routing_rules": "Time-based routing rules",
+    "rule_days": "Days",
+    "rule_start": "Start time",
+    "rule_end": "End time",
+    "rule_forward": "Forward to"
+  },
+  "add_rule": "Add rule",
+  "delete_confirm": "Delete this campaign?"
+}

@@ -1,0 +1,56 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('roles.title') %></h1>
+    <p class="subtitle"><%= t('roles.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <% if (can('roles.manage')) { %>
+      <a href="/roles/new" class="btn"><span class="material-symbols-outlined">add</span> <%= t('roles.new') %></a>
+    <% } %>
+  </div>
+</div>
+
+<div class="card tight">
+  <% if (!roles.length) { %>
+    <div class="empty-state"><span class="material-symbols-outlined">shield_person</span><p><%= t('messages.no_records') %></p></div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('labels.name') %></th>
+            <th><%= t('labels.type') %></th>
+            <th><%= t('labels.permissions') %></th>
+            <th class="actions-cell"><%= t('labels.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% roles.forEach(function(r){ %>
+            <tr>
+              <td><strong><%= r.name %></strong></td>
+              <td><span class="badge <%= r.isSystem?'badge--brand':'badge--neutral' %>"><%= r.isSystem ? t('type.system') : t('type.custom') %></span></td>
+              <td>
+                <small class="muted">
+                  <%= (r.permissions||[]).slice(0,5).join(', ') %><%= (r.permissions||[]).length>5 ? ' …' : '' %>
+                </small>
+              </td>
+              <td class="actions-cell">
+                <% if (can('roles.manage')) { %>
+                  <a href="/roles/<%= r._id %>/edit" class="btn-tertiary btn btn-sm"><%= r.isSystem ? t('actions.view') : t('actions.edit') %></a>
+                  <% if (!r.isSystem) { %>
+                    <form method="post" action="/roles/<%= r._id %>/delete" class="inline" data-confirm="<%= t('actions.delete') %>?">
+                      <button type="submit" class="link-btn" style="color:var(--color-danger);font-weight:600;"><%= t('actions.delete') %></button>
+                    </form>
+                  <% } %>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

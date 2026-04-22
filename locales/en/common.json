@@ -1,0 +1,263 @@
+{
+  "app_name": "CallTracker",
+  "open_menu": "Open menu",
+  "system_online": "System Online",
+  "live": "Live",
+  "collapse_sidebar": "Collapse sidebar",
+  "loading": "Loading…",
+  "nav_sections": {
+    "workspace": "Workspace",
+    "management": "Management",
+    "system_admin": "System Admin"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "campaigns": "Campaigns",
+    "numbers": "Numbers",
+    "calls": "Calls",
+    "analytics": "Analytics",
+    "postbacks": "Postbacks",
+    "users": "Users",
+    "roles": "Roles",
+    "account": "Account",
+    "profile": "Profile",
+    "admin": "Admin",
+    "logout": "Log out"
+  },
+  "actions": {
+    "create": "Create",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "submit": "Submit",
+    "yes": "Yes",
+    "no": "No",
+    "switch_account": "Switch account",
+    "view_all": "View all",
+    "view_all_logs": "View full logs",
+    "export_csv": "Export CSV",
+    "export_pdf": "Export PDF",
+    "new": "New",
+    "add": "Add",
+    "remove": "Remove",
+    "open": "Open",
+    "buy": "Buy",
+    "view": "View",
+    "join": "Join",
+    "logs": "Logs",
+    "invite": "Invite",
+    "release": "Release",
+    "enable": "Enable",
+    "disable": "Disable",
+    "revoke": "Revoke"
+  },
+  "labels": {
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "language": "Language",
+    "timezone": "Timezone",
+    "status": "Status",
+    "created_at": "Created",
+    "updated_at": "Updated",
+    "actions": "Actions",
+    "destination": "Destination",
+    "tracking_number": "Tracking Number",
+    "label": "Label",
+    "type": "Type",
+    "permissions": "Permissions",
+    "expires": "Expires",
+    "role": "Role",
+    "country": "Country",
+    "area_code": "Area code",
+    "region": "Region",
+    "provider": "Provider",
+    "method": "Method",
+    "url": "URL",
+    "triggers": "Triggers",
+    "key": "Key",
+    "details": "Details",
+    "country_code": "Country code",
+    "default_country": "Default country"
+  },
+  "status": {
+    "active": "Active",
+    "paused": "Paused",
+    "suspended": "Suspended",
+    "deleted": "Deleted",
+    "released": "Released",
+    "in_pool": "In pool",
+    "answered": "Answered",
+    "missed": "Missed",
+    "in_progress": "In-Progress",
+    "completed": "Completed",
+    "ringing": "Ringing",
+    "failed": "Failed",
+    "ok": "ok",
+    "fail": "fail"
+  },
+  "language_names": {
+    "en": "English",
+    "he": "עברית"
+  },
+  "kpi": {
+    "total_calls": "Total Calls",
+    "answered_calls": "Answered Calls",
+    "answer_rate": "Answer Rate",
+    "avg_duration": "Avg. Duration",
+    "conversion_rate": "Conversion Rate",
+    "campaigns": "Campaigns",
+    "active_numbers": "Active Numbers",
+    "vs_last_period": "vs. last period",
+    "rate": "Rate",
+    "last_30d": "Last 30 days",
+    "last_24h": "Last 24h"
+  },
+  "delta": {
+    "up": "Trending up",
+    "down": "Trending down"
+  },
+  "messages": {
+    "saved": "Saved",
+    "no_records": "No records yet."
+  },
+  "density": {
+    "compact": "Compact",
+    "comfortable": "Comfortable",
+    "spacious": "Spacious"
+  },
+  "type": {
+    "system": "system",
+    "custom": "custom"
+  },
+  "days": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  },
+  "dashboard": {
+    "subtitle": "Your marketing call performance at a glance.",
+    "call_volume": "Call Volume Over Time",
+    "call_volume_sub": "Daily inbound calls across all campaigns.",
+    "top_sources": "Top Lead Sources",
+    "top_sources_sub": "Best performing campaigns over the period.",
+    "live_call_feed": "Live Call Feed",
+    "view_full_logs": "View full call logs"
+  },
+  "numbers": {
+    "title": "Tracking Numbers",
+    "subtitle": "Provision Twilio numbers and route inbound calls to your sales lines.",
+    "buy_title": "Buy a tracking number",
+    "no_provider": "No provider credentials configured. Ask a Super-Admin to add Twilio credentials in the Admin Console.",
+    "override": "Forwarding override",
+    "fields": {
+      "number_type": "Number type",
+      "limit": "Results",
+      "area_code": "Area code",
+      "area_code_help": "Digits only, e.g. 415",
+      "contains": "Contains",
+      "contains_help": "Match digits anywhere in the number"
+    },
+    "number_types": {
+      "local": "Local",
+      "tollFree": "Toll-Free",
+      "mobile": "Mobile"
+    },
+    "dni": {
+      "title": "DNI Configuration",
+      "subtitle": "Dynamic Number Insertion pool capacity.",
+      "capacity": "{{used}} of {{total}} numbers in use"
+    },
+    "allocation": {
+      "title": "Monthly Allocation",
+      "subtitle": "Numbers provisioned this month."
+    }
+  },
+  "postbacks": {
+    "title": "Postbacks",
+    "subtitle": "Forward call events to your CRM, attribution platform, or webhook receiver.",
+    "by_campaign": "By campaign",
+    "logs": "Postback logs",
+    "logs_subtitle": "Most recent dispatched postbacks.",
+    "edit_for": "Edit postbacks for {{name}}",
+    "fields": {
+      "name": "Name",
+      "url": "URL",
+      "method": "Method",
+      "triggers": "Triggers",
+      "triggers_help": "Pick which call events should send this postback.",
+      "enabled": "Enabled"
+    },
+    "triggers": {
+      "call_started": "Call started",
+      "call_answered": "Call answered",
+      "call_completed": "Call completed",
+      "call_qualified": "Call qualified",
+      "call_tagged": "Call tagged"
+    },
+    "add": "Add postback",
+    "log_fields": {
+      "when": "When",
+      "trigger": "Trigger",
+      "url": "URL",
+      "status": "Status",
+      "ok": "OK",
+      "attempt": "Attempt"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Performance insights from the last 30 days.",
+    "by_campaign": "By campaign",
+    "by_campaign_sub": "Volume, qualified and converted calls per campaign.",
+    "daily_volume": "Daily call volume",
+    "daily_volume_sub": "Trend of inbound calls.",
+    "fields": {
+      "campaign": "Campaign",
+      "calls": "Calls",
+      "total_duration": "Total duration",
+      "qualified": "Qualified",
+      "converted": "Converted",
+      "date": "Date"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Manage workspace members, roles and pending invitations.",
+    "members": "Members",
+    "pending_invitations": "Pending invitations",
+    "invite_title": "Invite user"
+  },
+  "roles": {
+    "title": "Roles",
+    "subtitle": "Permission bundles that can be assigned to workspace members.",
+    "new": "New role",
+    "edit_title": "Edit role",
+    "create_title": "Create role",
+    "view_title": "View role",
+    "key_label": "Key",
+    "permissions_label": "Permissions",
+    "key_help": "Lowercase identifier used internally; cannot be changed later.",
+    "permissions_help": "Pick the actions members of this role can perform."
+  },
+  "account": {
+    "title": "Account Settings",
+    "subtitle": "Workspace name, default language and timezone.",
+    "default_country_help": "Used as the default country prefix when entering phone numbers and searching for tracking numbers."
+  },
+  "profile": {
+    "title": "Your Profile",
+    "subtitle": "Update your personal details and password.",
+    "new_password": "New password",
+    "leave_blank": "Leave blank to keep your current password."
+  }
+}

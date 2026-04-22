@@ -1,0 +1,59 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('campaigns:title') %></h1>
+    <p class="subtitle"><%= t('campaigns:subtitle') %></p>
+  </div>
+  <div class="actions">
+    <% if (can('campaign.write')) { %>
+      <a href="/campaigns/new" class="btn"><span class="material-symbols-outlined">add</span> <%= t('campaigns:new') %></a>
+    <% } %>
+  </div>
+</div>
+
+<% if (!campaigns.length) { %>
+  <div class="card">
+    <div class="empty-state">
+      <span class="material-symbols-outlined">campaign</span>
+      <p><%= t('messages.no_records') %></p>
+    </div>
+  </div>
+<% } else { %>
+  <div class="card tight">
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('labels.name') %></th>
+            <th><%= t('labels.status') %></th>
+            <th><%= t('campaigns:fields.default_forwarding') %></th>
+            <th><%= t('labels.timezone') %></th>
+            <th class="actions-cell"><%= t('labels.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% campaigns.forEach(function(c){ var stCls = c.status==='active' ? 'badge--success' : 'badge--warning'; %>
+            <tr>
+              <td><strong><%= c.name %></strong></td>
+              <td><span class="badge <%= stCls %>"><%= t('status.' + c.status) %></span></td>
+              <td class="text-mono"><%= c.defaultForwardingNumber || '—' %></td>
+              <td><small><%= c.timezone %></small></td>
+              <td class="actions-cell">
+                <% if (can('campaign.write')) { %>
+                  <a href="/campaigns/<%= c._id %>/edit" class="btn-tertiary btn btn-sm"><%= t('actions.edit') %></a>
+                <% } %>
+                <% if (can('campaign.delete')) { %>
+                  <form method="post" action="/campaigns/<%= c._id %>/delete" class="inline" data-confirm="<%= t('campaigns:delete_confirm') %>">
+                    <button type="submit" class="link-btn" style="color:var(--color-danger);font-weight:600;"><%= t('actions.delete') %></button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+<%- include('../partials/footer') %>

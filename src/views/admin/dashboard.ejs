@@ -1,0 +1,126 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('admin:title') %></h1>
+    <p class="subtitle"><%= t('admin:subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/admin/users" class="btn-secondary btn"><span class="material-symbols-outlined">group</span> <%= t('admin:global_users') %></a>
+    <a href="/admin/providers/new" class="btn"><span class="material-symbols-outlined">add</span> <%= t('admin:providers.new') %></a>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-card__head">
+      <span class="kpi-card__label"><%= t('admin:stats.accounts') %></span>
+      <span class="kpi-card__icon"><span class="material-symbols-outlined">corporate_fare</span></span>
+    </div>
+    <div class="kpi-card__value"><%= stats.accounts.toLocaleString(locale) %></div>
+    <a class="kpi-card__link" href="/admin/accounts"><%= t('actions.view_all') %></a>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-card__head">
+      <span class="kpi-card__label"><%= t('admin:stats.users') %></span>
+      <span class="kpi-card__icon"><span class="material-symbols-outlined">group</span></span>
+    </div>
+    <div class="kpi-card__value"><%= stats.users.toLocaleString(locale) %></div>
+    <a class="kpi-card__link" href="/admin/users"><%= t('actions.view_all') %></a>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-card__head">
+      <span class="kpi-card__label"><%= t('admin:stats.active_numbers') %></span>
+      <span class="kpi-card__icon"><span class="material-symbols-outlined">call</span></span>
+    </div>
+    <div class="kpi-card__value"><%= stats.numbers.toLocaleString(locale) %></div>
+    <span class="kpi-card__sub"><%= t('status.active') %></span>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-card__head">
+      <span class="kpi-card__label"><%= t('admin:stats.calls_24h') %></span>
+      <span class="kpi-card__icon"><span class="material-symbols-outlined">timer</span></span>
+    </div>
+    <div class="kpi-card__value"><%= stats.calls24h.toLocaleString(locale) %></div>
+    <span class="kpi-card__sub"><%= t('kpi.last_24h') %></span>
+  </div>
+</div>
+
+<div class="grid-2">
+  <section class="card tight">
+    <div class="card-header">
+      <div class="heading">
+        <h2><%= t('admin:recent_activity') %></h2>
+        <small><%= t('admin:audit.subtitle') %></small>
+      </div>
+      <div class="actions"><a class="btn-tertiary btn btn-sm" href="/admin/audit"><%= t('actions.view_all') %></a></div>
+    </div>
+    <% if (!recentActivity.length) { %>
+      <div class="empty-state"><span class="material-symbols-outlined">history</span><p><%= t('messages.no_records') %></p></div>
+    <% } else { %>
+      <div class="data-table-wrap">
+        <table class="data-table density-compact">
+          <thead>
+            <tr>
+              <th><%= t('admin:audit.when') %></th>
+              <th><%= t('admin:audit.actor') %></th>
+              <th><%= t('admin:audit.action') %></th>
+              <th><%= t('admin:audit.account') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentActivity.forEach(function(l){ %>
+              <tr>
+                <td><small><%= new Date(l.createdAt).toLocaleString(locale) %></small></td>
+                <td><small><%= l.actorId ? (l.actorId.email || l.actorId.name) : '—' %></small></td>
+                <td><span class="badge badge--neutral text-mono"><%= l.action %></span></td>
+                <td><small><%= l.accountId ? l.accountId.name : '—' %></small></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="card tight">
+    <div class="card-header">
+      <div class="heading">
+        <h2><%= t('admin:provider_health') %></h2>
+        <small><%= t('admin:providers.subtitle') %></small>
+      </div>
+      <div class="actions"><a class="btn-tertiary btn btn-sm" href="/admin/providers"><%= t('actions.view_all') %></a></div>
+    </div>
+    <% if (!providerHealth.length) { %>
+      <div class="empty-state">
+        <span class="material-symbols-outlined">key</span>
+        <p><%= t('admin:no_credentials') %></p>
+        <a class="btn btn-sm" href="/admin/providers/new"><%= t('admin:providers.new') %></a>
+      </div>
+    <% } else { %>
+      <div class="data-table-wrap">
+        <table class="data-table density-compact">
+          <thead>
+            <tr>
+              <th><%= t('admin:providers.provider') %></th>
+              <th><%= t('admin:providers.label') %></th>
+              <th><%= t('admin:providers.is_default') %></th>
+              <th><%= t('admin:providers.rotated_at') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% providerHealth.forEach(function(p){ %>
+              <tr>
+                <td><strong><%= p.provider %></strong></td>
+                <td><%= p.label %></td>
+                <td><% if (p.isDefault) { %><span class="badge badge--success"><%= t('actions.yes') %></span><% } else { %><span class="badge badge--neutral"><%= t('actions.no') %></span><% } %></td>
+                <td><small><%= p.rotatedAt ? new Date(p.rotatedAt).toLocaleString(locale) : '—' %></small></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+</div>
+<%- include('../partials/footer') %>

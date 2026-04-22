@@ -1,0 +1,87 @@
+{
+  "title": "Admin Console",
+  "subtitle": "System-level administration. Manage tenants, providers and audit history.",
+  "global_users": "Global Users",
+  "recent_activity": "Recent Activity",
+  "provider_health": "Provider Health",
+  "no_credentials": "No provider credentials configured.",
+  "stats": {
+    "accounts": "Accounts",
+    "users": "Users",
+    "active_numbers": "Active Numbers",
+    "calls_24h": "Calls (24h)"
+  },
+  "providers": {
+    "title": "Provider Credentials",
+    "subtitle": "Encrypted credentials are stored at rest and shared across the platform.",
+    "new": "New credential",
+    "label": "Label",
+    "provider": "Provider",
+    "is_default": "Default",
+    "rotated_at": "Last rotated",
+    "rotate": "Rotate / update",
+    "in_use": "Cannot delete: numbers are using this credential.",
+    "fields": {
+      "account_sid": "Account SID",
+      "auth_token": "Auth Token",
+      "api_key": "API Key (optional)",
+      "api_secret": "API Secret (optional)",
+      "signing_secret": "Signing secret (optional)"
+    }
+  },
+  "accounts": {
+    "title": "Accounts",
+    "subtitle": "Tenant workspaces hosted on the platform.",
+    "members": "Members",
+    "numbers": "Numbers",
+    "calls": "Calls",
+    "suspend": "Suspend",
+    "unsuspend": "Unsuspend",
+    "new": "New account",
+    "create": "Create account",
+    "edit": "Edit account",
+    "delete": "Delete",
+    "delete_confirm": "Soft-delete this account? Its data is preserved but it will be marked as deleted.",
+    "name_required": "Account name is required.",
+    "slug_hint": "Auto-generated from the name; cannot be changed later.",
+    "details": "Details",
+    "plan": "Plan",
+    "limits": "Limits",
+    "limits_numbers": "Max tracking numbers",
+    "limits_users": "Max users",
+    "limits_calls": "Max calls per month",
+    "use": "Use as workspace",
+    "use_help": "Open this tenant's workspace as super-admin",
+    "plans": {
+      "free": "Free",
+      "starter": "Starter",
+      "pro": "Pro",
+      "enterprise": "Enterprise"
+    }
+  },
+  "impersonation": {
+    "active": "You are using {{name}} as workspace",
+    "exit": "Exit"
+  },
+  "audit": {
+    "title": "Audit log",
+    "subtitle": "Every privileged action across the platform.",
+    "actor": "Actor",
+    "account": "Account",
+    "action": "Action",
+    "entity": "Entity",
+    "when": "When"
+  },
+  "users": {
+    "title": "Global Users",
+    "subtitle": "Manage every user on the platform. Promote trusted users to super-admin.",
+    "name": "Name",
+    "email": "Email",
+    "memberships": "Workspaces",
+    "is_super_admin": "Super-Admin",
+    "promote": "Promote to super-admin",
+    "demote": "Revoke super-admin",
+    "last_login": "Last login",
+    "self_demote": "You cannot revoke your own super-admin status."
+  }
+}

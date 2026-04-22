@@ -1,0 +1,18 @@
+<%- include('../partials/header_auth') %>
+<section class="auth-card">
+  <%- include('../partials/auth_brand') %>
+  <h1><%= t('auth:reset.title') %></h1>
+  <p class="auth-subtitle"><%= t('auth:reset.subtitle') %></p>
+
+  <% if (error) { %><div class="flash flash-error"><%= t('auth:reset.' + error) %></div><% } %>
+
+  <form method="post" action="/auth/reset">
+    <input type="hidden" name="token" value="<%= token || '' %>">
+    <div class="row">
+      <label for="password"><%= t('labels.password') %></label>
+      <input id="password" type="password" name="password" required minlength="8" autocomplete="new-password">
+    </div>
+    <button type="submit" class="btn"><%= t('auth:reset.submit') %></button>
+  </form>
+</section>
+<%- include('../partials/footer_auth') %>

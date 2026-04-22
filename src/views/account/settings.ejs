@@ -1,0 +1,65 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('account.title') %></h1>
+    <p class="subtitle"><%= t('account.subtitle') %></p>
+  </div>
+</div>
+
+<% if (typeof success !== 'undefined' && success) { %>
+  <div class="flash flash-success"><%= t('messages.saved') %></div>
+<% } %>
+
+<form method="post" action="/account" class="flex-col gap-md" style="max-inline-size:720px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="heading">
+        <h2><%= t('labels.details') %></h2>
+        <small><%= t('account.subtitle') %></small>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="row">
+        <label for="name"><%= t('labels.name') %></label>
+        <input id="name" type="text" name="name" value="<%= account.name %>" required>
+      </div>
+            <div class="row">
+              <label for="timezone"><%= t('labels.timezone') %></label>
+              <select id="timezone" name="timezone">
+                <% if (account.timezone && timezones.indexOf(account.timezone) === -1) { %>
+                  <option value="<%= account.timezone %>" selected><%= account.timezone %></option>
+                <% } %>
+                <% timezones.forEach(function(tz){ %>
+                  <option value="<%= tz %>" <%= account.timezone===tz?'selected':'' %>><%= tz %></option>
+                <% }) %>
+              </select>
+            </div>
+    </div>
+    <div class="grid-2">
+      <div class="row">
+        <label for="defaultLocale"><%= t('labels.language') %></label>
+        <select id="defaultLocale" name="defaultLocale">
+          <% locales.forEach(function(l){ %>
+            <option value="<%= l %>" <%= account.defaultLocale===l?'selected':'' %>><%= t('language_names.' + l) %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="row">
+        <label for="defaultCountry"><%= t('labels.default_country') %></label>
+        <% var dc = (account.defaultCountry || 'US').toUpperCase(); %>
+        <select id="defaultCountry" name="defaultCountry">
+          <% countries.forEach(function(c){ %>
+            <option value="<%= c.iso %>" <%= dc===c.iso?'selected':'' %>><%= c.name %> (+<%= c.dial %>)</option>
+          <% }) %>
+        </select>
+        <small class="help-text"><%= t('account.default_country_help') %></small>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn"><span class="material-symbols-outlined">save</span> <%= t('actions.save') %></button>
+  </div>
+</form>
+<%- include('../partials/footer') %>

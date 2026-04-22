@@ -1,0 +1,103 @@
+<%- include('../partials/header') %>
+
+<%
+  var stCls = account.status==='active' ? 'badge--success' : (account.status==='suspended' ? 'badge--warning' : 'badge--neutral');
+%>
+<div class="page-head">
+  <div class="title-block">
+    <h1>
+      <%= account.name %>
+      <span class="badge <%= stCls %>"><%= t('status.' + account.status) %></span>
+    </h1>
+    <p class="subtitle"><span class="text-mono"><%= account.slug %></span> · <%= account.timezone %> · <%= t('language_names.' + account.defaultLocale) %></p>
+  </div>
+  <div class="actions">
+    <a href="/admin/accounts" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+    <a href="/admin/accounts/<%= account._id %>/edit" class="btn-secondary btn"><span class="material-symbols-outlined">edit</span> <%= t('actions.edit') %></a>
+    <% if (account.status !== 'deleted') { %>
+      <form method="post" action="/admin/accounts/<%= account._id %>/use" class="inline">
+        <button type="submit" class="btn" title="<%= t('admin:accounts.use_help') %>">
+          <span class="material-symbols-outlined">login</span> <%= t('admin:accounts.use') %>
+        </button>
+      </form>
+      <form method="post" action="/admin/accounts/<%= account._id %>/suspend" class="inline" data-confirm="<%= account.status==='suspended' ? t('admin:accounts.unsuspend') : t('admin:accounts.suspend') %>?">
+        <button type="submit" class="btn-secondary btn"><%= account.status==='suspended' ? t('admin:accounts.unsuspend') : t('admin:accounts.suspend') %></button>
+      </form>
+      <form method="post" action="/admin/accounts/<%= account._id %>/delete" class="inline" data-confirm="<%= t('admin:accounts.delete_confirm') %>">
+        <button type="submit" class="btn-secondary btn" style="color:var(--color-danger);border-color:var(--color-danger);">
+          <span class="material-symbols-outlined">delete</span> <%= t('admin:accounts.delete') %>
+        </button>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-card__head">
+      <span class="kpi-card__label"><%= t('admin:accounts.members') %></span>
+      <span class="kpi-card__icon"><span class="material-symbols-outlined">group</span></span>
+    </div>
+    <div class="kpi-card__value"><%= memberships.length.toLocaleString(locale) %></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-card__head">
+      <span class="kpi-card__label"><%= t('admin:accounts.numbers') %></span>
+      <span class="kpi-card__icon"><span class="material-symbols-outlined">call</span></span>
+    </div>
+    <div class="kpi-card__value"><%= numbers.length.toLocaleString(locale) %></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-card__head">
+      <span class="kpi-card__label"><%= t('admin:accounts.calls') %></span>
+      <span class="kpi-card__icon"><span class="material-symbols-outlined">phone_callback</span></span>
+    </div>
+    <div class="kpi-card__value"><%= callsCount.toLocaleString(locale) %></div>
+  </div>
+</div>
+
+<div class="card tight">
+  <div class="card-header">
+    <div class="heading"><h2><%= t('admin:accounts.members') %></h2></div>
+  </div>
+  <% if (!memberships.length) { %>
+    <div class="empty-state"><span class="material-symbols-outlined">group</span><p><%= t('messages.no_records') %></p></div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('labels.name') %></th>
+            <th><%= t('labels.email') %></th>
+            <th><%= t('nav.roles') %></th>
+            <th><%= t('labels.status') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% memberships.forEach(function(m){
+               var name = (m.userId && m.userId.name) || '—';
+               var initial = (name || '?').toString().trim().charAt(0).toUpperCase();
+               var mst = m.status==='active' ? 'badge--success' : 'badge--neutral';
+          %>
+            <tr>
+              <td>
+                <div class="caller">
+                  <span class="avatar"><%= initial %></span>
+                  <span class="meta"><strong><%= name %></strong></span>
+                </div>
+              </td>
+              <td><small><%= m.userId && m.userId.email %></small></td>
+              <td>
+                <div class="flex flex-wrap gap-sm">
+                  <% (m.roleIds||[]).forEach(function(r){ %><span class="badge badge--brand"><%= r.name %></span><% }) %>
+                </div>
+              </td>
+              <td><span class="badge <%= mst %>"><%= t('status.' + m.status) %></span></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

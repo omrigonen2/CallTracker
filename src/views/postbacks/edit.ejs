@@ -1,0 +1,100 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('postbacks.edit_for', { name: campaign.name }) %></h1>
+    <p class="subtitle"><%= t('postbacks.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/postbacks" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+  </div>
+</div>
+
+<%
+  var TRIGGER_OPTIONS = ['call_started','call_answered','call_completed','call_qualified','call_tagged'];
+%>
+<form method="post" action="/postbacks/edit/<%= campaign._id %>" class="card">
+  <div id="pblist" class="flex-col gap-md">
+    <% (campaign.postbackConfigs||[]).forEach(function(p, pidx){ var trig = p.triggers||[]; %>
+      <div class="card tight" style="background:var(--color-surface-low);border:1px solid var(--color-outline);">
+        <input type="hidden" name="pbIndex" value="<%= pidx %>">
+        <div class="grid-2">
+          <div class="row">
+            <label><%= t('postbacks.fields.name') %></label>
+            <input type="text" name="pbName" value="<%= p.name %>">
+          </div>
+          <div class="row">
+            <label><%= t('postbacks.fields.method') %></label>
+            <select name="pbMethod">
+              <option value="POST" <%= p.method==='POST'?'selected':'' %>>POST</option>
+              <option value="GET" <%= p.method==='GET'?'selected':'' %>>GET</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <label><%= t('postbacks.fields.url') %></label>
+          <input type="url" name="pbUrl" value="<%= p.url %>" placeholder="https://example.com/webhook">
+        </div>
+        <div class="row">
+          <label><%= t('postbacks.fields.triggers') %></label>
+          <div class="checkbox-grid">
+            <% TRIGGER_OPTIONS.forEach(function(opt){ %>
+              <label>
+                <input type="checkbox" name="pbTriggers_<%= pidx %>" value="<%= opt %>" <%= trig.indexOf(opt)>-1?'checked':'' %>>
+                <span><%= t('postbacks.triggers.' + opt) %></span>
+              </label>
+            <% }) %>
+          </div>
+        </div>
+        <div class="row">
+          <label class="checkbox-label"><input type="checkbox" name="pbEnabled_<%= pidx %>" <%= p.enabled?'checked':'' %>> <%= t('postbacks.fields.enabled') %></label>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="btn-secondary btn" id="addPbBtn">
+      <span class="material-symbols-outlined">add</span> <%= t('postbacks.add') %>
+    </button>
+    <button type="submit" class="btn"><span class="material-symbols-outlined">save</span> <%= t('actions.save') %></button>
+    <a href="/postbacks" class="btn-secondary btn"><%= t('actions.cancel') %></a>
+  </div>
+</form>
+
+<script>
+  (function(){
+    var nextIdx = <%= (campaign.postbackConfigs||[]).length %>;
+    var TRIGGER_OPTIONS = <%- JSON.stringify(TRIGGER_OPTIONS) %>;
+    var triggerLabels = {
+      <% TRIGGER_OPTIONS.forEach(function(o, i){ %>'<%= o %>': <%- JSON.stringify(t('postbacks.triggers.' + o)) %><%= i<TRIGGER_OPTIONS.length-1?',':'' %><% }) %>
+    };
+    var labels = {
+      name: <%- JSON.stringify(t('postbacks.fields.name')) %>,
+      url: <%- JSON.stringify(t('postbacks.fields.url')) %>,
+      method: <%- JSON.stringify(t('postbacks.fields.method')) %>,
+      triggers: <%- JSON.stringify(t('postbacks.fields.triggers')) %>,
+      enabled: <%- JSON.stringify(t('postbacks.fields.enabled')) %>
+    };
+    document.getElementById('addPbBtn').addEventListener('click', function(){
+      var idx = nextIdx++;
+      var trigBoxes = '';
+      TRIGGER_OPTIONS.forEach(function(opt){
+        trigBoxes += '<label><input type="checkbox" name="pbTriggers_' + idx + '" value="' + opt + '"><span>' + triggerLabels[opt] + '</span></label>';
+      });
+      var html =
+        '<div class="card tight" style="background:var(--color-surface-low);border:1px solid var(--color-outline);">' +
+          '<input type="hidden" name="pbIndex" value="' + idx + '">' +
+          '<div class="grid-2">' +
+            '<div class="row"><label>' + labels.name + '</label><input type="text" name="pbName"></div>' +
+            '<div class="row"><label>' + labels.method + '</label><select name="pbMethod"><option value="POST">POST</option><option value="GET">GET</option></select></div>' +
+          '</div>' +
+          '<div class="row"><label>' + labels.url + '</label><input type="url" name="pbUrl" placeholder="https://example.com/webhook"></div>' +
+          '<div class="row"><label>' + labels.triggers + '</label><div class="checkbox-grid">' + trigBoxes + '</div></div>' +
+          '<div class="row"><label class="checkbox-label"><input type="checkbox" name="pbEnabled_' + idx + '" checked> ' + labels.enabled + '</label></div>' +
+        '</div>';
+      document.getElementById('pblist').insertAdjacentHTML('beforeend', html);
+    });
+  })();
+</script>
+<%- include('../partials/footer') %>

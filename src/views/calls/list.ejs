@@ -1,0 +1,107 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('calls:report_title') %></h1>
+    <p class="subtitle"><%= t('calls:report_subtitle') %></p>
+  </div>
+  <div class="actions">
+    <% if (can('call.export')) { %>
+      <a href="/calls/export.csv" class="btn-secondary btn"><span class="material-symbols-outlined">download</span> <%= t('actions.export_csv') %></a>
+    <% } %>
+  </div>
+</div>
+
+<form method="get" action="/calls" class="filter-bar">
+  <div class="filter-field">
+    <label><%= t('calls:filters.campaign') %></label>
+    <select name="campaign">
+      <option value=""><%= t('calls:filters.all') %></option>
+      <% campaigns.forEach(function(c){ %><option value="<%= c._id %>" <%= query.campaign===String(c._id)?'selected':'' %>><%= c.name %></option><% }) %>
+    </select>
+  </div>
+  <div class="filter-field">
+    <label><%= t('calls:filters.min_duration') %></label>
+    <input type="number" name="minDuration" value="<%= query.minDuration||'' %>">
+  </div>
+  <div class="filter-field">
+    <label><%= t('calls:filters.tag') %></label>
+    <input type="text" name="tag" value="<%= query.tag||'' %>">
+  </div>
+  <div class="actions">
+    <button type="submit" class="btn"><span class="material-symbols-outlined">filter_alt</span> <%= t('actions.filter') %></button>
+  </div>
+</form>
+
+<div class="grid-cols-2">
+  <div class="card tight">
+    <% if (!calls.length) { %>
+      <div class="empty-state">
+        <span class="material-symbols-outlined">phone_disabled</span>
+        <p><%= t('messages.no_records') %></p>
+      </div>
+    <% } else { %>
+      <div class="data-table-wrap">
+        <table class="data-table density-comfortable">
+          <thead>
+            <tr>
+              <th><%= t('calls:fields.caller') %></th>
+              <th><%= t('calls:fields.source') %></th>
+              <th><%= t('calls:fields.duration') %></th>
+              <th><%= t('calls:fields.status') %></th>
+              <th><%= t('calls:fields.outcome') %></th>
+              <th><%= t('calls:fields.time_date') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% calls.forEach(function(c){
+                 var initial = (c.callerNumber||'?').toString().replace(/[^0-9]/g,'').slice(-2) || '#';
+                 var statusKey = (c.status||'completed').replace('-','_');
+                 var stCls = c.status==='completed' ? 'badge--success' : (c.status==='in-progress' ? 'badge--info' : (c.status==='failed' ? 'badge--danger' : 'badge--neutral'));
+            %>
+              <tr>
+                <td>
+                  <a href="/calls/<%= c._id %>" class="caller" style="color:inherit;text-decoration:none;">
+                    <span class="avatar"><%= initial %></span>
+                    <span class="meta">
+                      <strong><%= c.callerNumber %></strong>
+                      <small><%= c.destinationNumber || '—' %></small>
+                    </span>
+                  </a>
+                </td>
+                <td>
+                  <% if (c.campaignId && c.campaignId.name) { %>
+                    <span class="source-pill"><span class="material-symbols-outlined">campaign</span><%= c.campaignId.name %></span>
+                  <% } else { %>—<% } %>
+                </td>
+                <td class="num"><%= c.duration||0 %>s</td>
+                <td><span class="badge <%= stCls %>"><%= t('status.' + statusKey) %></span></td>
+                <td><small><%= c.outcome ? t('calls:outcomes.' + c.outcome) : t('calls:outcomes.none') %></small></td>
+                <td><small><%= new Date(c.createdAt).toLocaleString(locale) %></small></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-head">
+      <span class="kpi-label"><%= t('calls:answer_rate') %></span>
+      <span class="kpi-icon"><span class="material-symbols-outlined">phone_in_talk</span></span>
+    </div>
+    <div class="kpi-value"><%= answerRate %>%</div>
+    <div class="kpi-meta"><%= t('calls:based_on', { count: totalCount }) %></div>
+    <div style="margin-block-start:var(--space-md);">
+      <div class="capacity-meter">
+        <div class="track"><div class="fill" style="inline-size: <%= answerRate %>%;"></div></div>
+        <div class="meta">
+          <span><%= answeredCount %> <%= t('status.answered') %></span>
+          <strong><%= totalCount %> <%= t('nav.calls').toLowerCase() %></strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/footer') %>

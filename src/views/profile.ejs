@@ -1,0 +1,62 @@
+<%- include('partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('profile.title') %></h1>
+    <p class="subtitle"><%= t('profile.subtitle') %></p>
+  </div>
+</div>
+
+<% if (typeof success !== 'undefined' && success) { %>
+  <div class="flash flash-success"><%= t('messages.saved') %></div>
+<% } %>
+
+<form method="post" action="/profile" class="flex-col gap-md" style="max-inline-size:720px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="heading"><h2><%= t('labels.details') %></h2></div>
+    </div>
+    <div class="grid-2">
+      <div class="row">
+        <label for="pname"><%= t('labels.name') %></label>
+        <input id="pname" name="name" value="<%= user.name %>" required>
+      </div>
+      <div class="row">
+        <label for="pemail"><%= t('labels.email') %></label>
+        <input id="pemail" value="<%= user.email %>" disabled>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="heading"><h2><%= t('labels.language') %></h2></div>
+    </div>
+    <div class="row">
+      <label for="locale"><%= t('labels.language') %></label>
+      <select id="locale" name="locale">
+        <% locales.forEach(function(l){ %>
+          <option value="<%= l %>" <%= user.locale===l?'selected':'' %>><%= t('language_names.' + l) %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="heading">
+        <h2><%= t('profile.new_password') %></h2>
+        <small><%= t('profile.leave_blank') %></small>
+      </div>
+    </div>
+    <div class="row">
+      <label for="ppwd"><%= t('profile.new_password') %></label>
+      <input id="ppwd" type="password" name="password" minlength="8" autocomplete="new-password">
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn"><span class="material-symbols-outlined">save</span> <%= t('actions.save') %></button>
+  </div>
+</form>
+<%- include('partials/footer') %>

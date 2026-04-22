@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('postbacks.logs') %></h1>
+    <p class="subtitle"><%= t('postbacks.logs_subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/postbacks" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+  </div>
+</div>
+
+<div class="card tight">
+  <% if (!logs.length) { %>
+    <div class="empty-state">
+      <span class="material-symbols-outlined">webhook</span>
+      <p><%= t('messages.no_records') %></p>
+    </div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('postbacks.log_fields.when') %></th>
+            <th><%= t('postbacks.log_fields.trigger') %></th>
+            <th><%= t('postbacks.log_fields.url') %></th>
+            <th class="num"><%= t('postbacks.log_fields.status') %></th>
+            <th><%= t('postbacks.log_fields.ok') %></th>
+            <th class="num"><%= t('postbacks.log_fields.attempt') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% logs.forEach(function(l){ %>
+            <tr>
+              <td><small><%= new Date(l.createdAt).toLocaleString(locale) %></small></td>
+              <td><span class="badge badge--brand"><%= l.trigger %></span></td>
+              <td class="text-mono" style="max-inline-size:32rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= l.url %></td>
+              <td class="num"><%= l.responseStatus %></td>
+              <td><span class="badge <%= l.success?'badge--success':'badge--danger' %>"><%= l.success ? t('status.ok') : t('status.fail') %></span></td>
+              <td class="num"><%= l.attempt %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

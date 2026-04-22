@@ -1,0 +1,16 @@
+{
+  "404": {
+    "title": "Page not found",
+    "body": "The page you are looking for doesn't exist."
+  },
+  "403": {
+    "title": "Forbidden",
+    "missing_permission": "You don't have permission to do that.",
+    "super_admin_required": "Super-Admin only.",
+    "system_role_readonly": "System roles cannot be edited."
+  },
+  "500": {
+    "title": "Something went wrong",
+    "body": "An unexpected error occurred. Please try again."
+  }
+}

@@ -1,0 +1,12 @@
+<%- include('../partials/header_auth') %>
+<div class="auth-card">
+  <h1><%= t('errors:403.title') %></h1>
+  <% if (typeof reason !== 'undefined') { %>
+    <p><%= t('errors:403.' + reason) %></p>
+  <% } %>
+  <% if (typeof perms !== 'undefined' && perms) { %>
+    <p><small><%= perms.join(', ') %></small></p>
+  <% } %>
+  <a href="/">&larr; <%= t('actions.back') %></a>
+</div>
+<%- include('../partials/footer') %>

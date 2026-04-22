@@ -1,0 +1,160 @@
+<%- include('partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('nav.dashboard') %></h1>
+    <p class="subtitle"><%= t('dashboard.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <span class="badge badge--success"><span class="dot dot--live"></span> <%= t('system_online') %></span>
+    <% if (can('call.export')) { %>
+      <a href="/calls/export.csv" class="btn-secondary btn"><span class="material-symbols-outlined">download</span> <%= t('actions.export_csv') %></a>
+    <% } %>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-head">
+      <span class="kpi-label"><%= t('kpi.total_calls') %></span>
+      <span class="kpi-icon"><span class="material-symbols-outlined">call</span></span>
+    </div>
+    <div class="kpi-value"><%= totalCalls.toLocaleString(locale) %></div>
+    <div class="kpi-meta"><%= t('kpi.last_30d') %></div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-head">
+      <span class="kpi-label"><%= t('kpi.answered_calls') %></span>
+      <span class="kpi-icon"><span class="material-symbols-outlined">phone_in_talk</span></span>
+    </div>
+    <div class="kpi-value"><%= answeredCalls.toLocaleString(locale) %></div>
+    <div class="kpi-meta">
+      <span class="badge badge--success"><%= answerRate %>% <%= t('kpi.rate') %></span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-head">
+      <span class="kpi-label"><%= t('kpi.avg_duration') %></span>
+      <span class="kpi-icon"><span class="material-symbols-outlined">timer</span></span>
+    </div>
+    <div class="kpi-value"><%= avgDuration %><span style="font-size:18px;font-weight:500;color:var(--color-on-surface-mut);">s</span></div>
+    <div class="kpi-meta"><%= t('kpi.last_30d') %></div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-head">
+      <span class="kpi-label"><%= t('kpi.conversion_rate') %></span>
+      <span class="kpi-icon"><span class="material-symbols-outlined">point_of_sale</span></span>
+    </div>
+    <div class="kpi-value"><%= conversionRate %>%</div>
+    <div class="kpi-meta"><%= campaignsCount %> <%= t('kpi.campaigns') %> · <%= numbersCount %> <%= t('kpi.active_numbers') %></div>
+  </div>
+</div>
+
+<div class="grid-cols-2">
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div>
+        <h2><%= t('dashboard.call_volume') %></h2>
+        <small><%= t('dashboard.call_volume_sub') %></small>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch" style="background:#0D9488"></span> <%= t('nav.calls') %></span>
+      </div>
+    </div>
+    <div class="canvas-wrap">
+      <canvas data-chart='<%- JSON.stringify(chart) %>'></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="heading">
+        <h2><%= t('dashboard.top_sources') %></h2>
+        <small><%= t('dashboard.top_sources_sub') %></small>
+      </div>
+    </div>
+    <% if (!topSources.length) { %>
+      <div class="empty-state">
+        <span class="material-symbols-outlined">insights</span>
+        <p><%= t('messages.no_records') %></p>
+      </div>
+    <% } else { %>
+      <div class="bar-list">
+        <% topSources.forEach(function(s){ var pct = Math.round((s.count / topMax) * 100); %>
+          <div class="bar-item">
+            <div class="bar-row">
+              <span class="label"><span class="material-symbols-outlined">campaign</span> <%= s.name %></span>
+              <span class="num"><%= s.count.toLocaleString(locale) %></span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="inline-size: <%= pct %>%;"></div></div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="heading">
+      <h2><%= t('dashboard.live_call_feed') %></h2>
+      <small><%= t('calls:report_subtitle') %></small>
+    </div>
+    <div class="actions">
+      <span class="badge badge--success"><span class="dot dot--live"></span> <%= t('live') %></span>
+      <a href="/calls" class="btn-tertiary btn"><%= t('dashboard.view_full_logs') %> <span class="material-symbols-outlined icon-flip-rtl">arrow_forward</span></a>
+    </div>
+  </div>
+
+  <% if (!recentCalls.length) { %>
+    <div class="empty-state">
+      <span class="material-symbols-outlined">phone_disabled</span>
+      <p><%= t('messages.no_records') %></p>
+    </div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('calls:fields.caller') %></th>
+            <th><%= t('calls:filters.campaign') %></th>
+            <th><%= t('calls:fields.duration') %></th>
+            <th><%= t('calls:fields.status') %></th>
+            <th><%= t('calls:fields.time_date') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% recentCalls.forEach(function(c){
+               var initial = (c.callerNumber||'?').toString().replace(/[^0-9]/g,'').slice(-2) || '#';
+               var statusCls = c.status==='completed' ? 'badge--success' : (c.status==='in-progress' ? 'badge--info' : (c.status==='failed' ? 'badge--danger' : 'badge--neutral'));
+          %>
+            <tr>
+              <td>
+                <a href="/calls/<%= c._id %>" class="caller" style="color:inherit;text-decoration:none;">
+                  <span class="avatar"><%= initial %></span>
+                  <span class="meta">
+                    <strong><%= c.callerNumber %></strong>
+                    <small><%= c.destinationNumber || '—' %></small>
+                  </span>
+                </a>
+              </td>
+              <td>
+                <% if (c.campaignId && c.campaignId.name) { %>
+                  <span class="source-pill"><span class="material-symbols-outlined">campaign</span><%= c.campaignId.name %></span>
+                <% } else { %>—<% } %>
+              </td>
+              <td class="num"><%= c.duration || 0 %>s</td>
+              <td><span class="badge <%= statusCls %>"><%= t('status.' + (c.status||'completed').replace('-','_')) %></span></td>
+              <td><small><%= new Date(c.createdAt).toLocaleString(locale) %></small></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

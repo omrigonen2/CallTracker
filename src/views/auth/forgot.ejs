@@ -1,0 +1,23 @@
+<%- include('../partials/header_auth') %>
+<section class="auth-card">
+  <%- include('../partials/auth_brand') %>
+  <h1><%= t('auth:forgot.title') %></h1>
+  <p class="auth-subtitle"><%= t('auth:forgot.subtitle') %></p>
+
+  <% if (sent) { %>
+    <div class="flash flash-success"><%= t('auth:forgot.sent') %></div>
+  <% } else { %>
+    <form method="post" action="/auth/forgot">
+      <div class="row">
+        <label for="email"><%= t('labels.email') %></label>
+        <input id="email" type="email" name="email" required autocomplete="email">
+      </div>
+      <button type="submit" class="btn"><%= t('auth:forgot.submit') %></button>
+    </form>
+  <% } %>
+
+  <div class="auth-foot">
+    <a href="/auth/login"><span class="material-symbols-outlined icon-flip-rtl" style="font-size:16px;vertical-align:-3px;">arrow_back</span> <%= t('actions.back') %></a>
+  </div>
+</section>
+<%- include('../partials/footer_auth') %>

@@ -1,0 +1,44 @@
+{
+  "title": "Calls",
+  "report_title": "Call Logs Report",
+  "report_subtitle": "Analyze every attribution point from your inbound marketing channels.",
+  "live_call_feed": "Live Call Feed",
+  "answer_rate": "Answer Rate",
+  "based_on": "Based on {{count}} total calls this period",
+  "rows_per_page": "Rows per page",
+  "showing_range": "Showing {{from}} to {{to}} of {{total}} entries",
+  "filters": {
+    "campaign": "Campaign",
+    "min_duration": "Min duration (s)",
+    "tag": "Tag",
+    "all": "All",
+    "time_period": "Time Period",
+    "start_date": "Start Date",
+    "end_date": "End Date",
+    "source": "Source"
+  },
+  "fields": {
+    "caller": "Caller ID",
+    "destination": "Destination",
+    "duration": "Duration",
+    "status": "Status",
+    "outcome": "Outcome",
+    "tags": "Tags",
+    "notes": "Notes",
+    "recording": "Recording",
+    "source": "Source",
+    "time_date": "Time / Date"
+  },
+  "outcomes": {
+    "converted": "Converted",
+    "not_relevant": "Not relevant",
+    "spam": "Spam",
+    "none": "—"
+  },
+  "actions": {
+    "add_tag": "Add tag",
+    "save_note": "Save note",
+    "set_outcome": "Set outcome",
+    "play": "Play recording"
+  }
+}

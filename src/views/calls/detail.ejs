@@ -1,0 +1,86 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('calls:title') %> · <span class="text-mono"><%= call.callerNumber %></span></h1>
+    <p class="subtitle"><%= new Date(call.createdAt).toLocaleString(locale) %></p>
+  </div>
+  <div class="actions">
+    <a href="/calls" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+  </div>
+</div>
+
+<%
+  var stCls = call.status==='completed' ? 'badge--success' : (call.status==='in-progress' ? 'badge--info' : (call.status==='failed' ? 'badge--danger' : 'badge--neutral'));
+  var statusKey = (call.status||'completed').replace('-','_');
+%>
+
+<div class="grid-cols-2">
+  <div class="card">
+    <div class="card-header">
+      <div class="heading"><h2><%= t('calls:title') %></h2></div>
+      <div class="actions"><span class="badge <%= stCls %>"><%= t('status.' + statusKey) %></span></div>
+    </div>
+
+    <div class="flex-col gap-md">
+      <div class="flex justify-between"><span class="muted"><%= t('calls:filters.campaign') %></span><strong><%= call.campaignId && call.campaignId.name || '—' %></strong></div>
+      <div class="flex justify-between"><span class="muted"><%= t('calls:fields.destination') %></span><strong class="text-mono"><%= call.destinationNumber %></strong></div>
+      <div class="flex justify-between"><span class="muted"><%= t('calls:fields.duration') %></span><strong><%= call.duration || 0 %>s</strong></div>
+    </div>
+
+    <% if (call.recordingUrl) { %>
+      <div style="margin-block-start:var(--space-lg);">
+        <h3 style="margin-block-end:var(--space-sm);"><%= t('calls:fields.recording') %></h3>
+        <audio controls src="<%= call.recordingUrl %>"></audio>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="flex-col gap-md">
+    <div class="card">
+      <div class="card-header">
+        <div class="heading"><h2><%= t('calls:fields.tags') %></h2></div>
+      </div>
+      <div class="flex flex-wrap gap-sm" style="margin-block-end:var(--space-md);">
+        <% (call.tags||[]).forEach(function(tag){ %>
+          <form method="post" action="/calls/<%= call._id %>/untag" class="inline">
+            <input type="hidden" name="tag" value="<%= tag %>">
+            <span class="badge badge--brand"><%= tag %> <button type="submit" class="link-btn" style="color:inherit;">×</button></span>
+          </form>
+        <% }) %>
+      </div>
+      <% if (can('call.tag')) { %>
+        <form method="post" action="/calls/<%= call._id %>/tag" class="flex gap-sm">
+          <input type="text" name="tag" placeholder="<%= t('calls:actions.add_tag') %>">
+          <button type="submit" class="btn-secondary btn btn-sm"><%= t('actions.create') %></button>
+        </form>
+      <% } %>
+    </div>
+
+    <% if (can('call.tag')) { %>
+      <div class="card">
+        <div class="card-header"><div class="heading"><h2><%= t('calls:fields.outcome') %></h2></div></div>
+        <form method="post" action="/calls/<%= call._id %>/outcome" class="flex gap-sm">
+          <select name="outcome">
+            <option value="" <%= !call.outcome?'selected':'' %>>—</option>
+            <option value="converted" <%= call.outcome==='converted'?'selected':'' %>><%= t('calls:outcomes.converted') %></option>
+            <option value="not_relevant" <%= call.outcome==='not_relevant'?'selected':'' %>><%= t('calls:outcomes.not_relevant') %></option>
+            <option value="spam" <%= call.outcome==='spam'?'selected':'' %>><%= t('calls:outcomes.spam') %></option>
+          </select>
+          <button type="submit" class="btn btn-sm"><%= t('calls:actions.set_outcome') %></button>
+        </form>
+      </div>
+    <% } %>
+
+    <% if (can('call.note')) { %>
+      <div class="card">
+        <div class="card-header"><div class="heading"><h2><%= t('calls:fields.notes') %></h2></div></div>
+        <form method="post" action="/calls/<%= call._id %>/note">
+          <div class="row"><textarea name="note"><%= call.notes || '' %></textarea></div>
+          <button type="submit" class="btn"><%= t('calls:actions.save_note') %></button>
+        </form>
+      </div>
+    <% } %>
+  </div>
+</div>
+<%- include('../partials/footer') %>

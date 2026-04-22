@@ -1,0 +1,108 @@
+<%- include('../partials/header') %>
+
+<%
+  var isNew = !account;
+  var limits = (account && account.limits) || { numbers: 100, users: 25, callsPerMonth: 100000 };
+%>
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= isNew ? t('admin:accounts.create') : t('admin:accounts.edit') %><% if (!isNew) { %> · <%= account.name %><% } %></h1>
+    <p class="subtitle"><%= t('admin:accounts.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="<%= isNew ? '/admin/accounts' : '/admin/accounts/' + account._id %>" class="btn-secondary btn">
+      <span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %>
+    </a>
+  </div>
+</div>
+
+<% if (typeof error !== 'undefined' && error === 'name_required') { %>
+  <div class="flash flash-error"><%= t('admin:accounts.name_required') %></div>
+<% } %>
+
+<form method="post" action="<%= isNew ? '/admin/accounts' : '/admin/accounts/' + account._id %>" class="flex-col gap-md" style="max-inline-size:720px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="heading"><h2><%= t('admin:accounts.details') %></h2></div>
+    </div>
+    <div class="grid-2">
+      <div class="row">
+        <label for="name"><%= t('labels.name') %></label>
+        <input id="name" name="name" required value="<%= account ? account.name : '' %>">
+      </div>
+      <div class="row">
+        <label for="slug"><%= t('labels.key') %></label>
+        <% if (isNew) { %>
+          <input id="slug" disabled value="—">
+          <small class="help-text"><%= t('admin:accounts.slug_hint') %></small>
+        <% } else { %>
+          <input id="slug" disabled value="<%= account.slug %>">
+        <% } %>
+      </div>
+      <div class="row">
+        <label for="defaultLocale"><%= t('labels.language') %></label>
+        <select id="defaultLocale" name="defaultLocale">
+          <% locales.forEach(function(l){ %>
+            <option value="<%= l %>" <%= (account ? account.defaultLocale : 'en')===l?'selected':'' %>><%= t('language_names.' + l) %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="row">
+        <label for="timezone"><%= t('labels.timezone') %></label>
+        <% var tzCurrent = account ? (account.timezone || 'UTC') : 'UTC'; %>
+        <select id="timezone" name="timezone">
+          <% if (tzCurrent && timezones.indexOf(tzCurrent) === -1) { %>
+            <option value="<%= tzCurrent %>" selected><%= tzCurrent %></option>
+          <% } %>
+          <% timezones.forEach(function(tz){ %>
+            <option value="<%= tz %>" <%= tzCurrent===tz?'selected':'' %>><%= tz %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="row">
+        <label for="defaultCountry"><%= t('labels.default_country') %></label>
+        <% var dcAdmin = (account && account.defaultCountry ? account.defaultCountry : 'US').toUpperCase(); %>
+        <select id="defaultCountry" name="defaultCountry">
+          <% countries.forEach(function(c){ %>
+            <option value="<%= c.iso %>" <%= dcAdmin===c.iso?'selected':'' %>><%= c.name %> (+<%= c.dial %>)</option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="row">
+        <label for="plan"><%= t('admin:accounts.plan') %></label>
+        <% var planCurrent = account ? (account.plan || 'free') : 'free'; %>
+        <select id="plan" name="plan">
+          <% ['free','starter','pro','enterprise'].forEach(function(p){ %>
+            <option value="<%= p %>" <%= planCurrent===p?'selected':'' %>><%= t('admin:accounts.plans.' + p) %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="heading"><h2><%= t('admin:accounts.limits') %></h2></div>
+    </div>
+    <div class="grid-2">
+      <div class="row">
+        <label for="lim_numbers"><%= t('admin:accounts.limits_numbers') %></label>
+        <input id="lim_numbers" type="number" min="0" step="1" name="limits.numbers" value="<%= limits.numbers %>">
+      </div>
+      <div class="row">
+        <label for="lim_users"><%= t('admin:accounts.limits_users') %></label>
+        <input id="lim_users" type="number" min="0" step="1" name="limits.users" value="<%= limits.users %>">
+      </div>
+      <div class="row">
+        <label for="lim_calls"><%= t('admin:accounts.limits_calls') %></label>
+        <input id="lim_calls" type="number" min="0" step="1" name="limits.callsPerMonth" value="<%= limits.callsPerMonth %>">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn"><span class="material-symbols-outlined">save</span> <%= t('actions.save') %></button>
+    <a class="btn-secondary btn" href="<%= isNew ? '/admin/accounts' : '/admin/accounts/' + account._id %>"><%= t('actions.cancel') %></a>
+  </div>
+</form>
+<%- include('../partials/footer') %>

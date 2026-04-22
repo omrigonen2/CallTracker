@@ -1,0 +1,189 @@
+<%- include('../partials/header') %>
+
+<%
+  var DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
+  var tzCurrent = campaign && campaign.timezone ? campaign.timezone : 'UTC';
+%>
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= campaign ? t('campaigns:edit') : t('campaigns:new') %></h1>
+    <p class="subtitle"><%= t('campaigns:settings') %></p>
+  </div>
+  <div class="actions">
+    <a href="/campaigns" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+  </div>
+</div>
+
+<form method="post" action="<%= campaign ? '/campaigns/' + campaign._id : '/campaigns' %>" class="card">
+  <div class="card-header">
+    <div class="heading">
+      <h2><%= t('campaigns:settings') %></h2>
+      <small><%= t('campaigns:subtitle') %></small>
+    </div>
+  </div>
+
+  <div class="row">
+    <label><%= t('campaigns:fields.name') %></label>
+    <input type="text" name="name" value="<%= campaign ? campaign.name : '' %>" required>
+  </div>
+
+  <div class="row">
+    <label><%= t('labels.status') %></label>
+    <select name="status">
+      <option value="active" <%= campaign && campaign.status==='active'?'selected':'' %>><%= t('status.active') %></option>
+      <option value="paused" <%= campaign && campaign.status==='paused'?'selected':'' %>><%= t('status.paused') %></option>
+    </select>
+  </div>
+
+  <div class="row">
+    <label><%= t('campaigns:fields.default_forwarding') %></label>
+    <%- include('../partials/phone_input', { base: 'defaultForwardingNumber', value: campaign ? (campaign.defaultForwardingNumber || '') : '' }) %>
+  </div>
+
+  <div class="row">
+    <label><%= t('campaigns:fields.fallback') %></label>
+    <%- include('../partials/phone_input', { base: 'fallbackNumber', value: campaign ? (campaign.fallbackNumber || '') : '' }) %>
+  </div>
+
+  <div class="row">
+    <label for="timezone"><%= t('labels.timezone') %></label>
+    <select id="timezone" name="timezone">
+      <% if (tzCurrent && timezones.indexOf(tzCurrent) === -1) { %>
+        <option value="<%= tzCurrent %>" selected><%= tzCurrent %></option>
+      <% } %>
+      <% timezones.forEach(function(tz){ %>
+        <option value="<%= tz %>" <%= tzCurrent===tz?'selected':'' %>><%= tz %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="row">
+    <label><%= t('campaigns:fields.qualified_seconds') %></label>
+    <select name="qualifiedSeconds">
+      <% [15, 30, 45, 60, 90, 120, 180, 300].forEach(function(s){ %>
+        <option value="<%= s %>" <%= campaign && Number(campaign.qualifiedSeconds)===s ? 'selected' : (!campaign && s===60 ? 'selected' : '') %>><%= s %>s</option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="row">
+    <label class="checkbox-label"><input type="checkbox" name="recordCalls" <%= !campaign || campaign.recordCalls ? 'checked' : '' %>> <%= t('campaigns:fields.record_calls') %></label>
+  </div>
+  <div class="row">
+    <label class="checkbox-label"><input type="checkbox" name="whisperEnabled" <%= campaign && campaign.whisperEnabled ? 'checked' : '' %>> <%= t('campaigns:fields.whisper_enabled') %></label>
+  </div>
+  <div class="row">
+    <label class="checkbox-label"><input type="checkbox" name="ivrEnabled" <%= campaign && campaign.ivrEnabled ? 'checked' : '' %>> <%= t('campaigns:fields.ivr_enabled') %></label>
+  </div>
+
+  <div class="card-header" style="margin-block-start:var(--space-md);">
+    <div class="heading">
+      <h2><%= t('campaigns:fields.routing_rules') %></h2>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn-secondary btn btn-sm" id="addRuleBtn">
+        <span class="material-symbols-outlined">add</span> <%= t('campaigns:add_rule') %>
+      </button>
+    </div>
+  </div>
+
+  <div id="rules" class="flex-col gap-md">
+    <% var rules = (campaign && campaign.routingRules) || []; rules.forEach(function(r, idx){ %>
+      <div class="rule card tight" style="background:var(--color-surface-low);border:1px solid var(--color-outline);">
+        <input type="hidden" name="ruleIndex" value="<%= idx %>">
+        <div class="row">
+          <label><%= t('campaigns:fields.rule_days') %></label>
+          <div class="day-pills">
+            <% DAYS.forEach(function(d){ %>
+              <label>
+                <input type="checkbox" name="ruleDays_<%= idx %>" value="<%= d %>" <%= (r.days||[]).indexOf(d)>-1 ? 'checked':'' %>>
+                <span><%= t('days.' + d) %></span>
+              </label>
+            <% }) %>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="row">
+            <label><%= t('campaigns:fields.rule_start') %></label>
+            <input type="time" name="ruleStart" value="<%= r.hoursStart || '00:00' %>" step="60">
+          </div>
+          <div class="row">
+            <label><%= t('campaigns:fields.rule_end') %></label>
+            <input type="time" name="ruleEnd" value="<%= r.hoursEnd || '23:59' %>" step="60">
+          </div>
+        </div>
+        <div class="row">
+          <label><%= t('campaigns:fields.rule_forward') %></label>
+          <%- include('../partials/phone_input', { base: 'ruleForward_' + idx, value: r.forwardTo || '' }) %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn"><span class="material-symbols-outlined">save</span> <%= t('actions.save') %></button>
+    <a href="/campaigns" class="btn-secondary btn"><%= t('actions.cancel') %></a>
+  </div>
+</form>
+
+<%
+  var nextRuleIndex = (campaign && campaign.routingRules ? campaign.routingRules.length : 0);
+  var defaultDial = '1';
+  for (var ci = 0; ci < countries.length; ci++) {
+    var iso = (typeof account !== 'undefined' && account && account.defaultCountry) ? account.defaultCountry.toUpperCase() : 'US';
+    if (countries[ci].iso === iso) { defaultDial = countries[ci].dial; break; }
+  }
+  var dialOptionsJson = JSON.stringify(countries.map(function(c){ return { iso: c.iso, dial: c.dial }; }));
+%>
+<script>
+  (function(){
+    var nextIdx = <%= nextRuleIndex %>;
+    var defaultDial = '<%= defaultDial %>';
+    var DIAL_OPTIONS = <%- dialOptionsJson %>;
+    var DAYS = <%- JSON.stringify(DAYS) %>;
+    var dayLabels = {
+      <% DAYS.forEach(function(d, i){ %>'<%= d %>': <%- JSON.stringify(t('days.' + d)) %><%= i<DAYS.length-1?',':'' %><% }) %>
+    };
+    var labels = {
+      days: <%- JSON.stringify(t('campaigns:fields.rule_days')) %>,
+      start: <%- JSON.stringify(t('campaigns:fields.rule_start')) %>,
+      end: <%- JSON.stringify(t('campaigns:fields.rule_end')) %>,
+      forward: <%- JSON.stringify(t('campaigns:fields.rule_forward')) %>,
+      cc: <%- JSON.stringify(t('labels.country_code')) %>
+    };
+    function dialSelect(name) {
+      var html = '<select name="' + name + '" class="phone-input-dial" aria-label="' + labels.cc + '">';
+      DIAL_OPTIONS.forEach(function(c){
+        var sel = (c.dial === defaultDial) ? ' selected' : '';
+        html += '<option value="' + c.dial + '" data-iso="' + c.iso + '"' + sel + '>' + c.iso + ' +' + c.dial + '</option>';
+      });
+      html += '</select>';
+      return html;
+    }
+    document.getElementById('addRuleBtn').addEventListener('click', function(){
+      var idx = nextIdx++;
+      var d = document.createElement('div');
+      d.className = 'rule card tight';
+      d.style.background = 'var(--color-surface-low)';
+      d.style.border = '1px solid var(--color-outline)';
+      var dayPills = '';
+      DAYS.forEach(function(day){
+        dayPills += '<label><input type="checkbox" name="ruleDays_' + idx + '" value="' + day + '"><span>' + dayLabels[day] + '</span></label>';
+      });
+      d.innerHTML =
+        '<div class="row"><label>' + labels.days + '</label><div class="day-pills">' + dayPills + '</div></div>' +
+        '<div class="grid-2">' +
+          '<div class="row"><label>' + labels.start + '</label><input type="time" name="ruleStart" value="09:00" step="60"></div>' +
+          '<div class="row"><label>' + labels.end + '</label><input type="time" name="ruleEnd" value="17:00" step="60"></div>' +
+        '</div>' +
+        '<div class="row"><label>' + labels.forward + '</label>' +
+          '<div class="phone-input">' +
+            dialSelect('ruleForward_' + idx + '_dial') +
+            '<input type="tel" name="ruleForward_' + idx + '_national" class="phone-input-national" inputmode="tel" pattern="[0-9 \\-]*" autocomplete="tel-national">' +
+          '</div>' +
+        '</div>';
+      document.getElementById('rules').appendChild(d);
+    });
+  })();
+</script>
+<%- include('../partials/footer') %>

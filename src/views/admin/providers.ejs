@@ -1,0 +1,62 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('admin:providers.title') %></h1>
+    <p class="subtitle"><%= t('admin:providers.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/admin/providers/new" class="btn"><span class="material-symbols-outlined">add</span> <%= t('admin:providers.new') %></a>
+  </div>
+</div>
+
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="flash flash-error"><%= t('admin:providers.' + error) %></div>
+<% } %>
+
+<div class="card tight">
+  <% if (!creds.length) { %>
+    <div class="empty-state">
+      <span class="material-symbols-outlined">key</span>
+      <p><%= t('admin:no_credentials') %></p>
+      <a class="btn btn-sm" href="/admin/providers/new"><%= t('admin:providers.new') %></a>
+    </div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('admin:providers.label') %></th>
+            <th><%= t('admin:providers.provider') %></th>
+            <th><%= t('admin:providers.is_default') %></th>
+            <th><%= t('admin:providers.rotated_at') %></th>
+            <th class="actions-cell"><%= t('labels.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% creds.forEach(function(c){ %>
+            <tr>
+              <td><strong><%= c.label %></strong></td>
+              <td><span class="badge badge--brand text-mono"><%= c.provider %></span></td>
+              <td>
+                <% if (c.isDefault) { %>
+                  <span class="badge badge--success"><%= t('actions.yes') %></span>
+                <% } else { %>
+                  <span class="badge badge--neutral"><%= t('actions.no') %></span>
+                <% } %>
+              </td>
+              <td><small><%= c.rotatedAt ? new Date(c.rotatedAt).toLocaleString(locale) : '—' %></small></td>
+              <td class="actions-cell">
+                <a class="btn-tertiary btn btn-sm" href="/admin/providers/<%= c._id %>/edit"><%= t('actions.edit') %></a>
+                <form method="post" action="/admin/providers/<%= c._id %>/delete" class="inline" data-confirm="<%= t('actions.delete') %>?">
+                  <button type="submit" class="link-btn" style="color:var(--color-danger);font-weight:600;"><%= t('actions.delete') %></button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

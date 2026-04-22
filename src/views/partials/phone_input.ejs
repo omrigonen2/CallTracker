@@ -1,0 +1,51 @@
+<%
+  /*
+    Reusable phone input — renders a country dial-code <select> + a national-number
+    <input type="tel">. The route handler must combine the two halves into E.164
+    using utils/countries.joinE164(`<base>_dial`, `<base>_national`).
+
+    Required local:
+      base       : string — base name used to build the two field names.
+    Optional locals:
+      value      : string — current E.164 value (e.g. "+15551234567").
+      required   : bool   — mark national input as required.
+      placeholder: string — placeholder for the national input.
+      defaultIso : string — fallback country ISO when value has no recognizable prefix.
+  */
+  var pi_value = (typeof value === 'string') ? value : '';
+  var pi_required = (typeof required !== 'undefined') && required;
+  var pi_placeholder = (typeof placeholder === 'string') ? placeholder : '5551234567';
+  var pi_defaultIso = (typeof defaultIso === 'string' && defaultIso) ? defaultIso.toUpperCase()
+    : ((typeof account !== 'undefined' && account && account.defaultCountry) ? String(account.defaultCountry).toUpperCase() : 'US');
+
+  var pi_split = (typeof splitE164 === 'function') ? splitE164(pi_value) : { dial: '', national: '' };
+  var pi_currentDial = pi_split.dial;
+  var pi_currentNational = pi_split.national || '';
+
+  // If we couldn't extract a dial code, fall back to the default country's dial.
+  var pi_defaultDial = '';
+  for (var pi_i = 0; pi_i < countries.length; pi_i++) {
+    if (countries[pi_i].iso === pi_defaultIso) { pi_defaultDial = countries[pi_i].dial; break; }
+  }
+  var pi_selectedDial = pi_currentDial || pi_defaultDial || '1';
+%>
+<div class="phone-input">
+  <select name="<%= base %>_dial" class="phone-input-dial" aria-label="<%= t('labels.country_code') %>">
+    <% countries.forEach(function(c){ %>
+      <option value="<%= c.dial %>" data-iso="<%= c.iso %>" <%= c.dial===pi_selectedDial?'selected':'' %>>
+        <%= c.iso %> +<%= c.dial %>
+      </option>
+    <% }) %>
+  </select>
+  <input
+    type="tel"
+    name="<%= base %>_national"
+    value="<%= pi_currentNational %>"
+    placeholder="<%= pi_placeholder %>"
+    inputmode="tel"
+    pattern="[0-9 \-]*"
+    autocomplete="tel-national"
+    class="phone-input-national"
+    <%= pi_required ? 'required' : '' %>
+  >
+</div>

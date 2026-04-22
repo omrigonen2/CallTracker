@@ -1,0 +1,86 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('admin:users.title') %></h1>
+    <p class="subtitle"><%= t('admin:users.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <a href="/admin" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
+  </div>
+</div>
+
+<% if (error === 'self_demote') { %>
+  <div class="flash flash-error"><%= t('admin:users.self_demote') %></div>
+<% } %>
+
+<div class="card tight">
+  <% if (!rows.length) { %>
+    <div class="empty-state"><span class="material-symbols-outlined">group</span><p><%= t('messages.no_records') %></p></div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('admin:users.name') %></th>
+            <th><%= t('admin:users.email') %></th>
+            <th><%= t('admin:users.memberships') %></th>
+            <th><%= t('labels.language') %></th>
+            <th><%= t('admin:users.is_super_admin') %></th>
+            <th class="actions-cell"><%= t('labels.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.forEach(function(u){
+               var name = u.name || '—';
+               var initial = (name || '?').toString().trim().charAt(0).toUpperCase();
+               var isSelf = String(u._id) === String(user._id);
+          %>
+            <tr>
+              <td>
+                <div class="caller">
+                  <span class="avatar"><%= initial %></span>
+                  <span class="meta"><strong><%= name %></strong></span>
+                </div>
+              </td>
+              <td><small><%= u.email %></small></td>
+              <td>
+                <% if (!u.memberships.length) { %>
+                  <small class="muted">—</small>
+                <% } else { %>
+                  <div class="flex flex-wrap gap-sm">
+                    <% u.memberships.forEach(function(m){ %>
+                      <% if (m.accountId) { %>
+                        <a class="badge badge--brand" href="/admin/accounts/<%= m.accountId._id %>"><%= m.accountId.name %></a>
+                      <% } %>
+                    <% }) %>
+                  </div>
+                <% } %>
+              </td>
+              <td><span class="badge badge--neutral"><%= u.locale || '—' %></span></td>
+              <td>
+                <% if (u.isSuperAdmin) { %>
+                  <span class="badge badge--success"><%= t('actions.yes') %></span>
+                <% } else { %>
+                  <span class="badge badge--neutral"><%= t('actions.no') %></span>
+                <% } %>
+              </td>
+              <td class="actions-cell">
+                <% if (u.isSuperAdmin) { %>
+                  <form method="post" action="/admin/users/<%= u._id %>/demote" class="inline" data-confirm="<%= t('admin:users.demote') %>?">
+                    <button type="submit" class="link-btn" style="color:var(--color-danger);font-weight:600;" <%= isSelf?'disabled':'' %>><%= t('admin:users.demote') %></button>
+                  </form>
+                <% } else { %>
+                  <form method="post" action="/admin/users/<%= u._id %>/promote" class="inline" data-confirm="<%= t('admin:users.promote') %>?">
+                    <button type="submit" class="link-btn"><%= t('admin:users.promote') %></button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

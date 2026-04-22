@@ -1,0 +1,103 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('users.title') %></h1>
+    <p class="subtitle"><%= t('users.subtitle') %></p>
+  </div>
+  <div class="actions">
+    <% if (can('users.invite')) { %>
+      <a href="/users/invite" class="btn"><span class="material-symbols-outlined">person_add</span> <%= t('actions.invite') %></a>
+    <% } %>
+  </div>
+</div>
+
+<div class="card tight">
+  <div class="card-header">
+    <div class="heading"><h2><%= t('users.members') %></h2></div>
+  </div>
+  <% if (!memberships.length) { %>
+    <div class="empty-state"><span class="material-symbols-outlined">group</span><p><%= t('messages.no_records') %></p></div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('labels.name') %></th>
+            <th><%= t('labels.email') %></th>
+            <th><%= t('nav.roles') %></th>
+            <th><%= t('labels.status') %></th>
+            <th class="actions-cell"><%= t('labels.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% memberships.forEach(function(m){
+               var name = m.userId && m.userId.name || '—';
+               var initial = (name || '?').toString().trim().charAt(0).toUpperCase();
+               var stCls = m.status==='active' ? 'badge--success' : 'badge--neutral';
+          %>
+            <tr>
+              <td>
+                <div class="caller">
+                  <span class="avatar"><%= initial %></span>
+                  <span class="meta"><strong><%= name %></strong></span>
+                </div>
+              </td>
+              <td><small><%= m.userId && m.userId.email %></small></td>
+              <td><div class="flex flex-wrap gap-sm"><% (m.roleIds||[]).forEach(function(r){ %><span class="badge badge--brand"><%= r.name %></span><% }) %></div></td>
+              <td><span class="badge <%= stCls %>"><%= t('status.' + m.status) %></span></td>
+              <td class="actions-cell">
+                <% if (can('users.update') && m.status==='active') { %>
+                  <form method="post" action="/users/<%= m._id %>/disable" class="inline" data-confirm="<%= t('actions.disable') %>?">
+                    <button type="submit" class="link-btn" style="color:var(--color-danger);font-weight:600;"><%= t('actions.disable') %></button>
+                  </form>
+                <% } else if (can('users.update')) { %>
+                  <form method="post" action="/users/<%= m._id %>/enable" class="inline">
+                    <button type="submit" class="link-btn"><%= t('actions.enable') %></button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+
+<% if (invitations.length) { %>
+  <div class="card tight">
+    <div class="card-header">
+      <div class="heading"><h2><%= t('users.pending_invitations') %></h2></div>
+    </div>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('labels.email') %></th>
+            <th><%= t('nav.roles') %></th>
+            <th><%= t('labels.expires') %></th>
+            <th class="actions-cell"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% invitations.forEach(function(i){ %>
+            <tr>
+              <td><strong><%= i.email %></strong></td>
+              <td><div class="flex flex-wrap gap-sm"><% (i.roleIds||[]).forEach(function(r){ %><span class="badge badge--brand"><%= r.name %></span><% }) %></div></td>
+              <td><small><%= new Date(i.expiresAt).toLocaleString(locale) %></small></td>
+              <td class="actions-cell">
+                <% if (can('users.invite')) { %>
+                  <form method="post" action="/users/invitations/<%= i._id %>/revoke" class="inline" data-confirm="<%= t('actions.revoke') %>?">
+                    <button type="submit" class="link-btn" style="color:var(--color-danger);font-weight:600;"><%= t('actions.revoke') %></button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+<%- include('../partials/footer') %>

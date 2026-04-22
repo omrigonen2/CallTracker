@@ -1,0 +1,99 @@
+<%
+  // Helpers: figure out which sections to show.
+  // Use the sticky `hasAccount` flag set by middleware/auth.js#loadAccount —
+  // it reflects whether the *signed-in user* has an active workspace, not
+  // whatever per-render `account` local an admin view may have shadowed in.
+  var hasWorkspace = (typeof hasAccount !== 'undefined' && hasAccount);
+  var path = (typeof currentUrl !== 'undefined' && currentUrl) ? currentUrl : '/';
+  function navActive(prefix, exact) {
+    if (exact) return path === prefix ? 'active' : '';
+    if (prefix === '/') return path === '/' ? 'active' : '';
+    return path.indexOf(prefix) === 0 ? 'active' : '';
+  }
+%>
+<aside class="sidebar" id="sidebar">
+  <a href="/" class="sidebar-brand">
+    <span class="brand-mark"><span class="material-symbols-outlined" aria-hidden="true">call</span></span>
+    <span><%= t('app_name') %></span>
+  </a>
+
+  <% if (hasWorkspace) { %>
+    <nav class="sidebar-section" aria-label="<%= t('common:nav_sections.workspace') %>">
+      <div class="sidebar-section-title"><%= t('common:nav_sections.workspace') %></div>
+      <a href="/" class="nav-item <%= navActive('/', true) %>"><span class="material-symbols-outlined">dashboard</span><span><%= t('nav.dashboard') %></span></a>
+      <% if (can('campaign.read')) { %>
+        <a href="/campaigns" class="nav-item <%= navActive('/campaigns') %>"><span class="material-symbols-outlined">campaign</span><span><%= t('nav.campaigns') %></span></a>
+      <% } %>
+      <% if (can('number.read')) { %>
+        <a href="/numbers" class="nav-item <%= navActive('/numbers') %>"><span class="material-symbols-outlined">dialpad</span><span><%= t('nav.numbers') %></span></a>
+      <% } %>
+      <% if (can('call.read')) { %>
+        <a href="/calls" class="nav-item <%= navActive('/calls') %>"><span class="material-symbols-outlined">phone_in_talk</span><span><%= t('nav.calls') %></span></a>
+      <% } %>
+      <% if (can('analytics.read')) { %>
+        <a href="/analytics" class="nav-item <%= navActive('/analytics') %>"><span class="material-symbols-outlined">monitoring</span><span><%= t('nav.analytics') %></span></a>
+      <% } %>
+      <% if (can('postback.read')) { %>
+        <a href="/postbacks" class="nav-item <%= navActive('/postbacks') %>"><span class="material-symbols-outlined">webhook</span><span><%= t('nav.postbacks') %></span></a>
+      <% } %>
+    </nav>
+
+    <nav class="sidebar-section" aria-label="<%= t('common:nav_sections.management') %>">
+      <div class="sidebar-section-title"><%= t('common:nav_sections.management') %></div>
+      <% if (can('users.read')) { %>
+        <a href="/users" class="nav-item <%= navActive('/users') %>"><span class="material-symbols-outlined">group</span><span><%= t('nav.users') %></span></a>
+      <% } %>
+      <% if (can('roles.read')) { %>
+        <a href="/roles" class="nav-item <%= navActive('/roles') %>"><span class="material-symbols-outlined">shield_person</span><span><%= t('nav.roles') %></span></a>
+      <% } %>
+      <% if (can('account.read')) { %>
+        <a href="/account" class="nav-item <%= navActive('/account') %>"><span class="material-symbols-outlined">tune</span><span><%= t('nav.account') %></span></a>
+      <% } %>
+    </nav>
+  <% } %>
+
+  <% if (typeof isSuperAdmin !== 'undefined' && isSuperAdmin) { %>
+    <nav class="sidebar-section" aria-label="<%= t('common:nav_sections.system_admin') %>">
+      <div class="sidebar-section-title"><%= t('common:nav_sections.system_admin') %></div>
+      <a href="/admin" class="nav-item <%= navActive('/admin', true) %>"><span class="material-symbols-outlined">admin_panel_settings</span><span><%= t('admin:title') %></span></a>
+      <a href="/admin/accounts" class="nav-item <%= navActive('/admin/accounts') %>"><span class="material-symbols-outlined">domain</span><span><%= t('admin:accounts.title') %></span></a>
+      <a href="/admin/users" class="nav-item <%= navActive('/admin/users') %>"><span class="material-symbols-outlined">manage_accounts</span><span><%= t('admin:global_users') %></span></a>
+      <a href="/admin/providers" class="nav-item <%= navActive('/admin/providers') %>"><span class="material-symbols-outlined">vpn_key</span><span><%= t('admin:providers.title') %></span></a>
+      <a href="/admin/audit" class="nav-item <%= navActive('/admin/audit') %>"><span class="material-symbols-outlined">history</span><span><%= t('admin:audit.title') %></span></a>
+    </nav>
+  <% } %>
+
+  <div class="sidebar-footer">
+    <% if (typeof accounts !== 'undefined' && accounts && accounts.length > 1) { %>
+      <form method="get" action="/" class="acct-switcher">
+        <select name="account" onchange="this.form.submit()" aria-label="<%= t('actions.switch_account') %>">
+          <% accounts.forEach(function(a){ %>
+            <option value="<%= a.slug %>" <%= account && String(a._id)===String(account._id) ? 'selected' : '' %>><%= a.name %></option>
+          <% }) %>
+        </select>
+      </form>
+    <% } %>
+
+    <form method="post" action="/lang" class="lang-switcher">
+      <input type="hidden" name="redirect" value="<%= path %>">
+      <select name="locale" onchange="this.form.submit()" aria-label="<%= t('labels.language') %>">
+        <% locales.forEach(function(l){ %>
+          <option value="<%= l %>" <%= l===locale?'selected':'' %>><%= t('language_names.' + l) %></option>
+        <% }) %>
+      </select>
+    </form>
+
+    <% if (typeof user !== 'undefined' && user) { %>
+      <a href="/profile" class="user-card" title="<%= user.email %>">
+        <span class="avatar"><%= (user.name||user.email||'?').toString().trim().charAt(0).toUpperCase() %></span>
+        <span class="meta">
+          <strong><%= user.name || user.email %></strong>
+          <small><%= user.email %></small>
+        </span>
+      </a>
+      <form method="post" action="/auth/logout">
+        <button type="submit" class="btn-secondary btn-sm" style="inline-size:100%;"><%= t('nav.logout') %></button>
+      </form>
+    <% } %>
+  </div>
+</aside>

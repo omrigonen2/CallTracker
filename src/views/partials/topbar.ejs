@@ -1,0 +1,33 @@
+<% if (typeof impersonating !== 'undefined' && impersonating && account) { %>
+  <div class="impersonation-bar" role="status">
+    <span class="material-symbols-outlined">visibility</span>
+    <span><%= t('admin:impersonation.active', { name: account.name }) %></span>
+    <form method="post" action="/exit-impersonation" class="inline">
+      <button type="submit" class="btn btn-sm btn-secondary">
+        <span class="material-symbols-outlined">logout</span> <%= t('admin:impersonation.exit') %>
+      </button>
+    </form>
+  </div>
+<% } %>
+<header class="topbar">
+  <button type="button" class="menu-toggle" aria-label="<%= t('common:open_menu') %>" data-toggle="sidebar">
+    <span class="material-symbols-outlined">menu</span>
+  </button>
+
+  <% if (typeof breadcrumb !== 'undefined' && breadcrumb && breadcrumb.length) { %>
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <% breadcrumb.forEach(function(b, i){ %>
+        <% if (i>0) { %><span class="sep">/</span><% } %>
+        <% if (b.href) { %><a href="<%= b.href %>"><%= b.label %></a><% } else { %><span><%= b.label %></span><% } %>
+      <% }) %>
+    </nav>
+  <% } else if (typeof pageTitle !== 'undefined' && pageTitle) { %>
+    <h1 class="page-title"><%= pageTitle %></h1>
+  <% } %>
+
+  <div class="topbar-right">
+    <% if (typeof account !== 'undefined' && account) { %>
+      <span class="badge badge--brand hide-on-mobile"><%= account.name %></span>
+    <% } %>
+  </div>
+</header>

@@ -1,0 +1,47 @@
+{
+  "name": "calltracker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multi-tenant call tracking platform (Twilio + extensible)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "worker": "node src/workers/index.js",
+    "seed": "node src/seeds/index.js",
+    "bootstrap-admin": "node src/seeds/super-admin.js",
+    "check-translations": "node scripts/check-translations.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "body-parser": "^2.2.2",
+    "bullmq": "^5.76.0",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "ejs": "^5.0.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "helmet": "^8.1.0",
+    "i18next": "^26.0.6",
+    "i18next-fs-backend": "^2.6.4",
+    "i18next-http-middleware": "^3.9.3",
+    "ioredis": "^5.10.1",
+    "jsonwebtoken": "^9.0.3",
+    "luxon": "^3.7.2",
+    "mongoose": "^9.5.0",
+    "nanoid": "^5.1.9",
+    "nodemailer": "^8.0.5",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "pino-pretty": "^13.1.3",
+    "twilio": "^6.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
