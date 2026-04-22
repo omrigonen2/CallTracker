@@ -15,20 +15,33 @@ let subInitialized = false;
 function initSubscriber() {
   if (subInitialized) return;
   subInitialized = true;
-  const sub = getSubscriber();
+  let sub;
+  try { sub = getSubscriber(); } catch (e) {
+    log.warn({ err: e.message }, 'cred subscriber init failed');
+    return;
+  }
   sub.subscribe(INVALIDATE_CHANNEL, (err) => {
-    if (err) log.error({ err: err.message }, 'cred sub failed');
+    if (err) log.warn({ err: err.message }, 'cred sub subscribe failed');
   });
   sub.on('message', (channel, message) => {
     if (channel !== INVALIDATE_CHANNEL) return;
     log.debug({ key: message }, 'invalidating credential cache');
     memCache.delete(message);
-    getClient().del(`${CACHE_PREFIX}${message}`).catch(() => {});
+    try { getClient().del(`${CACHE_PREFIX}${message}`).catch(() => {}); } catch (_e) { /* noop */ }
   });
+  sub.on('error', (e) => log.warn({ err: e.message }, 'cred subscriber error'));
 }
 
 async function publishInvalidate(key) {
-  await getPublisher().publish(INVALIDATE_CHANNEL, key);
+  // Best-effort: if Redis is unreachable, the local memCache invalidation in
+  // `invalidate()` is still authoritative for this process. Other processes
+  // will see stale data until their TTL expires; that's acceptable.
+  try {
+    const pub = getPublisher();
+    await pub.publish(INVALIDATE_CHANNEL, key);
+  } catch (e) {
+    log.warn({ err: e.message, key }, 'cred invalidate publish failed');
+  }
 }
 
 async function getDefaultCredentialDoc(provider) {
@@ -118,10 +131,12 @@ async function remove(id) {
 }
 
 async function invalidate(provider, id = null) {
-  await publishInvalidate(`${provider}:default`);
-  if (id) await publishInvalidate(`${provider}:${id}`);
+  // Always purge our local memory cache first; this can never fail.
   memCache.delete(`${provider}:default`);
   if (id) memCache.delete(`${provider}:${id}`);
+  // Then best-effort broadcast to other processes.
+  await publishInvalidate(`${provider}:default`);
+  if (id) await publishInvalidate(`${provider}:${id}`);
 }
 
 async function listSafe(provider = null) {
