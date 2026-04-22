@@ -108,25 +108,51 @@ stub('../src/models/LedgerEntry', {
   create: async (doc) => ({ _id: 'l1', ...doc }),
 });
 
-const settingsState = { creditUsdRate: 0.01, lastUpdate: null };
-stub('../src/models/SystemSetting', {
-  getOrCreate: async () => ({
+const settingsState = {
+  creditUsdRate: 0.01,
+  mail: { fromEmail: '', replyTo: '', apiKeyEncrypted: '', apiKeyMask: '' },
+  lastUpdate: null,
+};
+function settingsSnapshot() {
+  return {
     key: 'global',
     billing: { creditUsdRate: settingsState.creditUsdRate },
-    toObject() { return { key: 'global', billing: { creditUsdRate: settingsState.creditUsdRate } }; },
+    mail: { ...settingsState.mail },
+  };
+}
+stub('../src/models/SystemSetting', {
+  getOrCreate: async () => ({
+    ...settingsSnapshot(),
+    toObject() { return settingsSnapshot(); },
   }),
   findOneAndUpdate: async (_filter, update) => {
-    const v = update && update.$set && update.$set['billing.creditUsdRate'];
-    if (typeof v === 'number') settingsState.creditUsdRate = v;
+    const $set = (update && update.$set) || {};
+    if (typeof $set['billing.creditUsdRate'] === 'number') {
+      settingsState.creditUsdRate = $set['billing.creditUsdRate'];
+    }
+    if (typeof $set['mail.fromEmail'] === 'string') settingsState.mail.fromEmail = $set['mail.fromEmail'];
+    if (typeof $set['mail.replyTo'] === 'string') settingsState.mail.replyTo = $set['mail.replyTo'];
+    if (typeof $set['mail.apiKeyEncrypted'] === 'string') settingsState.mail.apiKeyEncrypted = $set['mail.apiKeyEncrypted'];
+    if (typeof $set['mail.apiKeyMask'] === 'string') settingsState.mail.apiKeyMask = $set['mail.apiKeyMask'];
     settingsState.lastUpdate = update;
-    return { key: 'global', billing: { creditUsdRate: settingsState.creditUsdRate } };
+    return settingsSnapshot();
   },
 });
 
 stub('../src/services/systemSettings', {
-  get: async () => ({ billing: { creditUsdRate: settingsState.creditUsdRate } }),
+  get: async () => settingsSnapshot(),
   invalidate: () => {},
   getCreditUsdRate: async () => settingsState.creditUsdRate,
+  getMail: async () => ({ ...settingsState.mail }),
+  getResendApiKey: async () => null,
+});
+
+stub('../src/config/crypto', {
+  encrypt: (obj) => 'ENC:' + JSON.stringify(obj),
+  decrypt: (blob) => {
+    if (typeof blob !== 'string' || !blob.startsWith('ENC:')) throw new Error('bad blob');
+    return JSON.parse(blob.slice(4));
+  },
 });
 
 stub('../src/services/billing', {
@@ -405,6 +431,67 @@ test('POST /admin/settings rejects invalid rates with 400 + flash', async () => 
   assert.strictEqual(res.status, 400);
   assert.match(res.body, /admin:settings\.invalid_credit_usd_rate/);
   assert.strictEqual(settingsState.creditUsdRate, 0.01, 'rate unchanged on invalid input');
+});
+
+test('admin/settings renders Mail card inputs (from / reply-to / api-key)', async () => {
+  settingsState.mail = { fromEmail: 'CallTracker <noreply@example.com>', replyTo: 'support@example.com', apiKeyEncrypted: 'ENC:{"key":"re_xxx"}', apiKeyMask: 're_***_xxxx' };
+  const app = makeApp();
+  const res = await getStatus(app, '/admin/settings');
+  assert.strictEqual(res.status, 200);
+  assert.match(res.body, /name="mail\.fromEmail"/, 'fromEmail input present');
+  assert.match(res.body, /name="mail\.replyTo"/, 'replyTo input present');
+  assert.match(res.body, /name="mail\.apiKey"/, 'apiKey input present');
+  assert.match(res.body, /value="CallTracker [^"]*noreply@example\.com[^"]*"/, 'fromEmail prefilled');
+  assert.match(res.body, /value="support@example\.com"/, 'replyTo prefilled');
+  assert.doesNotMatch(res.body, /re_xxx/, 'raw API key should NOT be rendered');
+});
+
+test('POST /admin/settings persists mail.* fields, encrypts API key, stores mask', async () => {
+  settingsState.creditUsdRate = 0.01;
+  settingsState.mail = { fromEmail: '', replyTo: '', apiKeyEncrypted: '', apiKeyMask: '' };
+  const app = makeApp();
+  const res = await postRequest(app, '/admin/settings', {
+    'billing.creditUsdRate': '0.01',
+    'mail.fromEmail': 'CallTracker <noreply@example.com>',
+    'mail.replyTo': 'support@example.com',
+    'mail.apiKey': 're_test_key_abcdef',
+  });
+  assert.strictEqual(res.status, 302, `expected 302, got ${res.status}\n${res.body.slice(0, 400)}`);
+  assert.strictEqual(res.headers.location, '/admin/settings?saved=1');
+  assert.strictEqual(settingsState.mail.fromEmail, 'CallTracker <noreply@example.com>');
+  assert.strictEqual(settingsState.mail.replyTo, 'support@example.com');
+  assert.match(settingsState.mail.apiKeyEncrypted, /^ENC:/, 'value passed through crypto.encrypt before persistence');
+  assert.match(settingsState.mail.apiKeyMask, /\*\*\*/, 'mask stored');
+  assert.match(settingsState.mail.apiKeyMask, /cdef$/, 'mask preserves last chars of key');
+});
+
+test('POST /admin/settings without mail.apiKey keeps the existing encrypted key', async () => {
+  settingsState.creditUsdRate = 0.01;
+  settingsState.mail = { fromEmail: 'a@b.com', replyTo: '', apiKeyEncrypted: 'ENC:{"key":"existing"}', apiKeyMask: 'exi***ting' };
+  const app = makeApp();
+  const res = await postRequest(app, '/admin/settings', {
+    'billing.creditUsdRate': '0.01',
+    'mail.fromEmail': 'a@b.com',
+    'mail.replyTo': '',
+    'mail.apiKey': '',
+  });
+  assert.strictEqual(res.status, 302);
+  assert.strictEqual(settingsState.mail.apiKeyEncrypted, 'ENC:{"key":"existing"}', 'existing encrypted key preserved');
+  assert.strictEqual(settingsState.mail.apiKeyMask, 'exi***ting', 'existing mask preserved');
+});
+
+test('POST /admin/settings rejects invalid mail.fromEmail with 400', async () => {
+  settingsState.creditUsdRate = 0.01;
+  const before = { ...settingsState.mail };
+  const app = makeApp();
+  const res = await postRequest(app, '/admin/settings', {
+    'billing.creditUsdRate': '0.01',
+    'mail.fromEmail': 'not-an-email',
+    'mail.apiKey': '',
+  });
+  assert.strictEqual(res.status, 400);
+  assert.match(res.body, /admin:settings\.invalid_from_email/);
+  assert.deepStrictEqual(settingsState.mail, before, 'mail settings unchanged on invalid input');
 });
 
 test('sidebar hides Workspace links for super-admin without an active membership', async () => {

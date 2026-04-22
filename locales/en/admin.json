@@ -110,6 +110,16 @@
     "preview_one_usd": "$1 USD = {{credits}} credits",
     "preview_thousand": "1,000 credits = ${{usd}}",
     "saved": "Settings saved",
-    "invalid_credit_usd_rate": "Credit-to-USD rate must be a positive number (>= 0.000001)."
+    "invalid_credit_usd_rate": "Credit-to-USD rate must be a positive number (>= 0.000001).",
+    "mail": "Mail (Resend)",
+    "mail_subtitle": "Transactional email delivery via the Resend HTTP API.",
+    "mail_from": "From email",
+    "mail_from_help": "Sender shown to recipients. Use 'name@domain' or 'Name <name@domain>' format. Domain must be verified in Resend.",
+    "mail_reply_to": "Reply-to (optional)",
+    "mail_reply_to_help": "Replies will be routed here. Leave blank to use the From address.",
+    "mail_api_key": "Resend API key",
+    "mail_api_key_help": "Leave blank to keep the current key. Stored encrypted with MASTER_ENCRYPTION_KEY.",
+    "mail_api_key_set": "Current: {{mask}} (leave blank to keep)",
+    "invalid_from_email": "From / Reply-to email looks invalid. Use 'name@domain' or 'Name <name@domain>'."
   }
 }

@@ -14,6 +14,7 @@ const audit = require('../services/audit');
 const billing = require('../services/billing');
 const SystemSetting = require('../models/SystemSetting');
 const systemSettings = require('../services/systemSettings');
+const cryptoBox = require('../config/crypto');
 const countries = require('../utils/countries');
 const ctx = require('../utils/asyncContext');
 const { requireSuperAdmin, signSession, setSessionCookie } = require('../middleware/auth');
@@ -416,24 +417,67 @@ router.get('/settings', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+function maskApiKey(key) {
+  const s = String(key || '');
+  if (s.length <= 7) return '***';
+  return `${s.slice(0, 3)}***${s.slice(-4)}`;
+}
+
+// Accepts either "user@domain" or "Display Name <user@domain>".
+function isValidFromEmail(s) {
+  const v = String(s || '').trim();
+  if (!v) return true; // empty allowed (cleared)
+  if (/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(v)) return true;
+  if (/^[^<>]+<\s*[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+\s*>$/.test(v)) return true;
+  return false;
+}
+
 router.post('/settings', async (req, res, next) => {
   try {
     const raw = req.body['billing.creditUsdRate'];
     const rate = parseFloat(raw);
-    if (!Number.isFinite(rate) || rate < 0.000001) {
+    const fromEmail = String(req.body['mail.fromEmail'] || '').trim();
+    const replyTo = String(req.body['mail.replyTo'] || '').trim();
+    const newApiKey = String(req.body['mail.apiKey'] || '').trim();
+
+    async function renderError(code) {
       const doc = await SystemSetting.getOrCreate();
       const obj = doc.toObject ? doc.toObject() : doc;
       obj.billing = obj.billing || {};
       obj.billing.creditUsdRate = raw;
+      obj.mail = obj.mail || {};
+      obj.mail.fromEmail = fromEmail;
+      obj.mail.replyTo = replyTo;
       return res.status(400).render('admin/settings', {
         settings: obj,
-        error: 'invalid_credit_usd_rate',
+        error: code,
         saved: false,
       });
     }
+
+    if (!Number.isFinite(rate) || rate < 0.000001) {
+      return renderError('invalid_credit_usd_rate');
+    }
+    if (!isValidFromEmail(fromEmail)) {
+      return renderError('invalid_from_email');
+    }
+    if (replyTo && !isValidFromEmail(replyTo)) {
+      return renderError('invalid_from_email');
+    }
+
+    const set = {
+      'billing.creditUsdRate': rate,
+      'mail.fromEmail': fromEmail,
+      'mail.replyTo': replyTo,
+    };
+    if (newApiKey) {
+      set['mail.apiKeyEncrypted'] = cryptoBox.encrypt({ key: newApiKey });
+      set['mail.apiKeyMask'] = maskApiKey(newApiKey);
+    }
+
     await SystemSetting.findOneAndUpdate(
       { key: 'global' },
-      { $set: { 'billing.creditUsdRate': rate } },
+      { $set: set },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
     systemSettings.invalidate();
@@ -441,7 +485,14 @@ router.post('/settings', async (req, res, next) => {
       ...audit.fromReq(req),
       action: 'admin.settings.update',
       entity: 'SystemSetting',
-      metadata: { creditUsdRate: rate },
+      metadata: {
+        creditUsdRate: rate,
+        mail: {
+          fromEmail,
+          replyTo,
+          apiKeyChanged: Boolean(newApiKey),
+        },
+      },
     });
     res.redirect('/admin/settings?saved=1');
   } catch (e) { next(e); }

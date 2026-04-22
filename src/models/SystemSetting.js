@@ -10,10 +10,22 @@ const BillingSettingsSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const MailSettingsSchema = new mongoose.Schema(
+  {
+    provider: { type: String, default: 'resend', enum: ['resend'] },
+    apiKeyEncrypted: { type: String, default: '' },
+    apiKeyMask: { type: String, default: '' },
+    fromEmail: { type: String, default: '' },
+    replyTo: { type: String, default: '' },
+  },
+  { _id: false }
+);
+
 const SystemSettingSchema = new mongoose.Schema(
   {
     key: { type: String, default: 'global', unique: true, required: true },
     billing: { type: BillingSettingsSchema, default: () => ({}) },
+    mail: { type: MailSettingsSchema, default: () => ({}) },
   },
   { timestamps: true }
 );

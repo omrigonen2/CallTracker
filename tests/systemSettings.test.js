@@ -35,6 +35,18 @@ stub('../src/utils/logger', {
   child: () => ({ info: () => {}, warn: () => {}, error: () => {}, debug: () => {} }),
 });
 
+let cryptoBehavior = {
+  decrypt: (blob) => {
+    if (blob === 'BAD') throw new Error('bad blob');
+    return JSON.parse(blob);
+  },
+  encrypt: (obj) => JSON.stringify(obj),
+};
+stub('../src/config/crypto', {
+  decrypt: (b) => cryptoBehavior.decrypt(b),
+  encrypt: (o) => cryptoBehavior.encrypt(o),
+});
+
 const systemSettings = require('../src/services/systemSettings');
 
 test('get(): caches result so repeated calls hit Mongo only once', async () => {
@@ -86,6 +98,59 @@ test('getCreditUsdRate(): falls back to 0.01 when missing/invalid', async () => 
   storedDoc = { key: 'global', billing: { creditUsdRate: -1 } };
   rate = await systemSettings.getCreditUsdRate();
   assert.strictEqual(rate, 0.01, 'negative falls back to default');
+});
+
+test('getMail(): returns mail subdocument or empty object', async () => {
+  systemSettings.invalidate();
+  storedDoc = { key: 'global', billing: { creditUsdRate: 0.01 }, mail: { fromEmail: 'a@b.com', replyTo: 'r@b.com' } };
+  const m = await systemSettings.getMail();
+  assert.strictEqual(m.fromEmail, 'a@b.com');
+  assert.strictEqual(m.replyTo, 'r@b.com');
+
+  systemSettings.invalidate();
+  storedDoc = { key: 'global', billing: { creditUsdRate: 0.01 } };
+  const m2 = await systemSettings.getMail();
+  assert.deepStrictEqual(m2, {});
+});
+
+test('getResendApiKey(): returns decrypted key when set', async () => {
+  systemSettings.invalidate();
+  storedDoc = {
+    key: 'global',
+    billing: { creditUsdRate: 0.01 },
+    mail: { apiKeyEncrypted: JSON.stringify({ key: 're_secret_123' }) },
+  };
+  const k = await systemSettings.getResendApiKey();
+  assert.strictEqual(k, 're_secret_123');
+});
+
+test('getResendApiKey(): returns null when no encrypted key stored', async () => {
+  systemSettings.invalidate();
+  storedDoc = { key: 'global', billing: { creditUsdRate: 0.01 }, mail: {} };
+  const k = await systemSettings.getResendApiKey();
+  assert.strictEqual(k, null);
+});
+
+test('getResendApiKey(): returns null when decrypt throws', async () => {
+  systemSettings.invalidate();
+  storedDoc = {
+    key: 'global',
+    billing: { creditUsdRate: 0.01 },
+    mail: { apiKeyEncrypted: 'BAD' },
+  };
+  const k = await systemSettings.getResendApiKey();
+  assert.strictEqual(k, null);
+});
+
+test('getResendApiKey(): returns null when decrypted payload lacks key', async () => {
+  systemSettings.invalidate();
+  storedDoc = {
+    key: 'global',
+    billing: { creditUsdRate: 0.01 },
+    mail: { apiKeyEncrypted: JSON.stringify({ other: 'x' }) },
+  };
+  const k = await systemSettings.getResendApiKey();
+  assert.strictEqual(k, null);
 });
 
 test('get(): returns safe default when getOrCreate throws', async () => {

@@ -110,6 +110,16 @@
     "preview_one_usd": "$1 USD = {{credits}} קרדיטים",
     "preview_thousand": "1,000 קרדיטים = ${{usd}}",
     "saved": "ההגדרות נשמרו",
-    "invalid_credit_usd_rate": "שער קרדיט לדולר חייב להיות מספר חיובי (>= 0.000001)."
+    "invalid_credit_usd_rate": "שער קרדיט לדולר חייב להיות מספר חיובי (>= 0.000001).",
+    "mail": "דוא\"ל (Resend)",
+    "mail_subtitle": "שליחת דוא\"ל טרנזקציוני דרך ה-API של Resend.",
+    "mail_from": "כתובת שולח (From)",
+    "mail_from_help": "מופיע אצל הנמען. ניתן להשתמש בפורמט 'name@domain' או 'שם <name@domain>'. הדומיין חייב להיות מאומת ב-Resend.",
+    "mail_reply_to": "כתובת למענה (אופציונלי)",
+    "mail_reply_to_help": "תשובות ישלחו לכאן. השאר ריק כדי להשתמש בכתובת השולח.",
+    "mail_api_key": "מפתח API של Resend",
+    "mail_api_key_help": "השאר ריק כדי לשמור את המפתח הקיים. נשמר מוצפן עם MASTER_ENCRYPTION_KEY.",
+    "mail_api_key_set": "נוכחי: {{mask}} (השאר ריק לשימור)",
+    "invalid_from_email": "כתובת שולח/מענה אינה תקינה. השתמש ב-'name@domain' או 'שם <name@domain>'."
   }
 }

@@ -6,6 +6,11 @@
   if (!isFinite(rateNum) || rateNum <= 0) rateNum = 0.01;
   var creditsPerUsd = Math.floor(1 / rateNum);
   var usdPerThousand = (1000 * rateNum).toFixed(2);
+  var mailCfg = (settings && settings.mail) || {};
+  var apiKeyMask = mailCfg.apiKeyMask || '';
+  var apiKeyPlaceholder = apiKeyMask
+    ? t('admin:settings.mail_api_key_set', { mask: apiKeyMask })
+    : 're_xxxxxxxxxxxxxxxxxxxx';
 %>
 
 <div class="page-head">
@@ -49,6 +54,50 @@
         <span class="material-symbols-outlined">savings</span>
         <span id="preview-thousand"><%= t('admin:settings.preview_thousand', { usd: usdPerThousand }) %></span>
       </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title"><%= t('admin:settings.mail') %></h2>
+    <p class="subtitle"><%= t('admin:settings.mail_subtitle') %></p>
+
+    <div class="form-row">
+      <label for="mailFromEmail"><%= t('admin:settings.mail_from') %></label>
+      <input
+        type="text"
+        id="mailFromEmail"
+        name="mail.fromEmail"
+        value="<%= mailCfg.fromEmail || '' %>"
+        placeholder="CallTracker &lt;no-reply@yourdomain.com&gt;"
+        autocomplete="email"
+      />
+      <small class="help"><%= t('admin:settings.mail_from_help') %></small>
+    </div>
+
+    <div class="form-row">
+      <label for="mailReplyTo"><%= t('admin:settings.mail_reply_to') %></label>
+      <input
+        type="email"
+        id="mailReplyTo"
+        name="mail.replyTo"
+        value="<%= mailCfg.replyTo || '' %>"
+        placeholder="support@yourdomain.com"
+        autocomplete="off"
+      />
+      <small class="help"><%= t('admin:settings.mail_reply_to_help') %></small>
+    </div>
+
+    <div class="form-row">
+      <label for="mailApiKey"><%= t('admin:settings.mail_api_key') %></label>
+      <input
+        type="password"
+        id="mailApiKey"
+        name="mail.apiKey"
+        value=""
+        placeholder="<%= apiKeyPlaceholder %>"
+        autocomplete="new-password"
+      />
+      <small class="help"><%= t('admin:settings.mail_api_key_help') %></small>
     </div>
   </div>
 
