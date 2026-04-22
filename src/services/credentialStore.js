@@ -44,17 +44,25 @@ async function getDefaultCredentialDoc(provider) {
  * @param {string|null} credentialId (optional explicit id)
  */
 async function get(provider, credentialId = null) {
-  initSubscriber();
+  try { initSubscriber(); } catch (e) { log.warn({ err: e.message }, 'cred subscriber init failed'); }
   const cacheKey = credentialId ? `${provider}:${credentialId}` : `${provider}:default`;
 
   if (memCache.has(cacheKey)) return memCache.get(cacheKey);
 
-  const redis = getClient();
-  const cached = await redis.get(`${CACHE_PREFIX}${cacheKey}`);
-  if (cached) {
-    const parsed = JSON.parse(cached);
-    memCache.set(cacheKey, parsed);
-    return parsed;
+  // Redis is best-effort cache; never let it block credential lookup.
+  let redis = null;
+  try { redis = getClient(); } catch (e) { log.warn({ err: e.message }, 'redis client init failed'); }
+  if (redis) {
+    try {
+      const cached = await redis.get(`${CACHE_PREFIX}${cacheKey}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        memCache.set(cacheKey, parsed);
+        return parsed;
+      }
+    } catch (e) {
+      log.warn({ err: e.message }, 'cred cache read failed');
+    }
   }
 
   const doc = credentialId
@@ -64,7 +72,10 @@ async function get(provider, credentialId = null) {
 
   const decrypted = decrypt(doc.credentialsEncrypted);
   const value = { id: String(doc._id), provider: doc.provider, label: doc.label, ...decrypted };
-  await redis.set(`${CACHE_PREFIX}${cacheKey}`, JSON.stringify(value), 'EX', CACHE_TTL_S);
+  if (redis) {
+    redis.set(`${CACHE_PREFIX}${cacheKey}`, JSON.stringify(value), 'EX', CACHE_TTL_S)
+      .catch((e) => log.warn({ err: e.message }, 'cred cache write failed'));
+  }
   memCache.set(cacheKey, value);
   return value;
 }

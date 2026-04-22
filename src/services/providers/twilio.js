@@ -6,7 +6,10 @@ const credentialStore = require('../credentialStore');
 async function client(credentialId = null) {
   const c = await credentialStore.get('twilio', credentialId);
   if (!c.accountSid || !c.authToken) throw new Error('Twilio credentials missing accountSid/authToken');
-  return { client: twilio(c.accountSid, c.authToken), creds: c };
+  return {
+    client: twilio(c.accountSid, c.authToken, { timeout: 15000 }),
+    creds: c,
+  };
 }
 
 async function listAvailableNumbers({ countryCode = 'US', areaCode, contains, numberType = 'local', limit = 20 }) {
