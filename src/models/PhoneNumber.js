@@ -13,6 +13,9 @@ const PhoneNumberSchema = new mongoose.Schema(
     friendlyName: { type: String, default: '' },
     status: { type: String, enum: ['active', 'released'], default: 'active', index: true },
     forwardingOverride: { type: String, default: '' },
+    countryCode: { type: String, default: '' },
+    monthlyCostCredits: { type: Number, default: 0 },
+    purchasedCostCredits: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

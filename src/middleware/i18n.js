@@ -16,7 +16,7 @@ async function init() {
       backend: {
         loadPath: path.join(__dirname, '..', '..', 'locales', '{{lng}}', '{{ns}}.json'),
       },
-      ns: ['common', 'auth', 'campaigns', 'calls', 'admin', 'errors'],
+      ns: ['common', 'auth', 'campaigns', 'calls', 'admin', 'errors', 'billing'],
       defaultNS: 'common',
       fallbackLng: config.defaultLocale,
       preload: config.locales,
@@ -32,7 +32,6 @@ async function init() {
 }
 
 function localsBinder(req, res, next) {
-  // Resolve locale: user pref > account default > detected > en
   let locale = req.language || config.defaultLocale;
   if (req.user && req.user.locale) locale = req.user.locale;
   else if (req.account && req.account.defaultLocale) locale = req.account.defaultLocale;

@@ -10,6 +10,8 @@ const credentialStore = require('../services/credentialStore');
 const { resolveForwardTo } = require('../services/routing');
 const { dispatch: dispatchPostback } = require('../services/postbackDispatcher');
 const localized = require('../services/localizedContent');
+const billing = require('../services/billing');
+const twilioPricing = require('../services/twilioPricing');
 const config = require('../config');
 const log = require('../utils/logger');
 
@@ -38,7 +40,6 @@ router.post('/twilio/voice', verifyTwilio, async (req, res, next) => {
     const to = req.body.To;
     const from = req.body.From;
     const callSid = req.body.CallSid;
-    // Bypass tenant scope for cross-tenant lookup by exact phoneNumber:
     const num = await PhoneNumber.findOne({ phoneNumber: to }).setOptions({ skipTenantScope: true });
     if (!num) {
       const r = new twilio.twiml.VoiceResponse();
@@ -48,7 +49,6 @@ router.post('/twilio/voice', verifyTwilio, async (req, res, next) => {
 
     const campaign = num.campaignId ? await Campaign.findOne({ _id: num.campaignId }).setOptions({ skipTenantScope: true }) : null;
 
-    // Blacklist check
     const profile = await CallerProfile.findOne({ accountId: num.accountId, phoneNumber: from }).setOptions({ skipTenantScope: true });
     if (profile && profile.isBlacklisted) {
       const r = new twilio.twiml.VoiceResponse();
@@ -58,7 +58,6 @@ router.post('/twilio/voice', verifyTwilio, async (req, res, next) => {
 
     const { forwardTo, fallbackTo } = resolveForwardTo({ phoneNumberDoc: num, campaignDoc: campaign });
 
-    // Create call record
     const call = await Call.create({
       accountId: num.accountId,
       campaignId: num.campaignId,
@@ -71,14 +70,12 @@ router.post('/twilio/voice', verifyTwilio, async (req, res, next) => {
       isDuplicateCaller: !!profile,
     });
 
-    // Update profile
     await CallerProfile.findOneAndUpdate(
       { accountId: num.accountId, phoneNumber: from },
       { $inc: { totalCalls: 1 }, $set: { lastCallAt: new Date() }, $setOnInsert: { accountId: num.accountId, phoneNumber: from } },
       { upsert: true, setDefaultsOnInsert: true, ...{ skipTenantScope: true } }
     ).setOptions({ skipTenantScope: true });
 
-    // Fire call_started postbacks
     if (campaign && campaign.postbackConfigs) {
       for (const pb of campaign.postbackConfigs) {
         if (!pb.enabled) continue;
@@ -97,7 +94,6 @@ router.post('/twilio/voice', verifyTwilio, async (req, res, next) => {
 
     const r = new twilio.twiml.VoiceResponse();
 
-    // Optional IVR
     if (campaign && campaign.ivrEnabled) {
       const locale = campaign && campaign.timezone ? 'en' : 'en';
       const prompt = (await localized.render({ accountId: num.accountId, channel: 'ivr', key: campaign.ivrTemplateKey, locale, vars: { campaign: campaign.name } })) || 'Press 1 for sales, 2 for support.';
@@ -155,6 +151,75 @@ router.post('/twilio/ivr', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+async function _chargeCall(call) {
+  if (!call || !call.accountId) return;
+  if (call.chargedCredits && call.chargedCredits > 0) return; // idempotent
+  const billedSeconds = Math.max(0, parseInt(call.duration, 10) || 0);
+  if (billedSeconds <= 0) return;
+
+  const num = await PhoneNumber.findOne({ _id: call.phoneNumberId }).setOptions({ skipTenantScope: true });
+  if (!num) {
+    log.warn({ callId: String(call._id) }, 'cannot charge call: phone number not found');
+    return;
+  }
+
+  let ratePerMinuteUsd = 0;
+  try {
+    const voice = await twilioPricing.getVoicePrice({
+      credentialId: num.providerCredentialId,
+      destinationE164: num.phoneNumber,
+    });
+    ratePerMinuteUsd = Number(voice.inboundCallPriceUsd) || 0;
+  } catch (e) {
+    log.warn({ err: e.message, callId: String(call._id) }, 'getVoicePrice failed; defaulting to 0.0085 USD/min');
+    ratePerMinuteUsd = 0.0085;
+  }
+
+  const providerCostUsd = ratePerMinuteUsd * (billedSeconds / 60);
+  const quote = await billing.computeCredits({
+    providerCredentialId: num.providerCredentialId,
+    accountId: call.accountId,
+    kind: 'callPerMinute',
+    providerCostUsd,
+  });
+
+  call.billedSeconds = billedSeconds;
+  call.providerCostUsd = providerCostUsd;
+  call.chargedCredits = quote.credits;
+  await call.save();
+
+  try {
+    await billing.debit(call.accountId, quote.credits, {
+      kind: 'call_charge',
+      ref: { callId: call._id, providerCredentialId: num.providerCredentialId, phoneNumberId: num._id },
+      metadata: {
+        providerCostUsd,
+        marginMode: quote.marginMode,
+        marginValue: quote.marginValue,
+        durationSec: billedSeconds,
+        country: num.countryCode || '',
+      },
+    });
+  } catch (e) {
+    if (e && e.code === 'INSUFFICIENT_CREDITS') {
+      log.warn({ callId: String(call._id), needed: e.needed, balance: e.balance }, 'call_charge skipped: insufficient credits');
+      await billing.noteZero(call.accountId, {
+        kind: 'adjustment',
+        ref: { callId: call._id, providerCredentialId: num.providerCredentialId, phoneNumberId: num._id },
+        metadata: {
+          providerCostUsd,
+          marginMode: quote.marginMode,
+          marginValue: quote.marginValue,
+          durationSec: billedSeconds,
+          note: `INSUFFICIENT_CREDITS for call_charge: needed ${e.needed}, had ${e.balance}`,
+        },
+      });
+    } else {
+      log.error({ err: e.message, callId: String(call._id) }, 'call_charge debit failed');
+    }
+  }
+}
+
 router.post('/twilio/status', verifyTwilio, async (req, res, next) => {
   try {
     const sid = req.body.CallSid;
@@ -176,6 +241,14 @@ router.post('/twilio/status', verifyTwilio, async (req, res, next) => {
     }
 
     await call.save();
+
+    if (status === 'completed') {
+      try {
+        await _chargeCall(call);
+      } catch (e) {
+        log.error({ err: e.message, callId: String(call._id) }, 'chargeCall threw');
+      }
+    }
 
     if (campaign && campaign.postbackConfigs && status === 'completed') {
       for (const pb of campaign.postbackConfigs) {

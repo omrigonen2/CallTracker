@@ -21,6 +21,13 @@
     "rotated_at": "סבב אחרון",
     "rotate": "סיבוב / עדכון",
     "in_use": "לא ניתן למחוק: מספרים משתמשים בפרטים אלה.",
+    "margins": "מרווחי ברירת מחדל",
+    "margins_help": "ישמשו לחישוב מחיר בקרדיטים אלא אם הוגדרה דריסה ברמת החשבון.",
+    "margin": {
+      "numberPurchase": "רכישת מספר",
+      "numberMonthly": "דמי שכירות חודשיים",
+      "callPerMinute": "שיחה (לדקה)"
+    },
     "fields": {
       "account_sid": "Account SID",
       "auth_token": "Auth Token",
@@ -52,6 +59,16 @@
     "limits_calls": "מקסימום שיחות בחודש",
     "use": "כניסה כמרחב עבודה",
     "use_help": "פתח את מרחב העבודה של הלקוח כסופר-אדמין",
+    "providers": "ספקים",
+    "primary_provider": "ספק ראשי",
+    "fallback_provider": "ספק גיבוי",
+    "margin_overrides": "דריסות מרווח",
+    "margin_overrides_help": "דריסת המרווח של הספק עבור חשבון זה כאשר מאופשרת.",
+    "margin": {
+      "numberPurchase": "רכישת מספר",
+      "numberMonthly": "דמי שכירות חודשיים",
+      "callPerMinute": "שיחה (לדקה)"
+    },
     "plans": {
       "free": "חינמי",
       "starter": "התחלה",

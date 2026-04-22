@@ -23,6 +23,9 @@ const CallSchema = new mongoose.Schema(
     score: { type: Number, default: 0 },
     qualified: { type: Boolean, default: false, index: true },
     isDuplicateCaller: { type: Boolean, default: false },
+    billedSeconds: { type: Number, default: 0 },
+    providerCostUsd: { type: Number, default: 0 },
+    chargedCredits: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

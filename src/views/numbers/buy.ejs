@@ -6,26 +6,29 @@
     <p class="subtitle"><%= t('numbers.subtitle') %></p>
   </div>
   <div class="actions">
+    <span class="badge badge--brand" title="<%= t('billing:balance') %>">
+      <span class="material-symbols-outlined">paid</span>
+      <%= t('billing:balance') %>: <strong><%= (balance || 0).toLocaleString(locale) %></strong>
+    </span>
     <a href="/numbers" class="btn-secondary btn"><span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %></a>
   </div>
 </div>
 
-<% if (!activeProviders.length) { %>
-  <div class="flash flash-error"><%= t('numbers.no_provider') %></div>
+<% if (!hasProvider) { %>
+  <div class="flash flash-error">
+    <% if (error === 'no_primary_provider') { %>
+      <%= t('billing:no_primary_provider') %>
+    <% } else { %>
+      <%= t('numbers.no_provider') %>
+    <% } %>
+  </div>
 <% } else { %>
   <%
     var NUMBER_TYPES = ['local', 'tollFree', 'mobile'];
     var LIMIT_OPTIONS = [10, 20, 50];
+    var canAfford = priceCredits != null && (balance || 0) >= priceCredits;
   %>
   <form method="get" action="/numbers/buy" class="filter-bar">
-    <div class="filter-field">
-      <label><%= t('labels.provider') %></label>
-      <select name="provider" required>
-        <% activeProviders.forEach(function(p){ %>
-          <option value="<%= p %>" <%= p===provider?'selected':'' %>><%= p %></option>
-        <% }) %>
-      </select>
-    </div>
     <div class="filter-field">
       <label><%= t('labels.country') %></label>
       <select name="countryCode" required>
@@ -63,9 +66,24 @@
     </div>
   </form>
 
+  <% if (priceError) { %>
+    <div class="flash flash-warning"><%= t('billing:price_error') %>: <%= priceError %></div>
+  <% } %>
   <% if (error) { %><div class="flash flash-error"><%= error %></div><% } %>
 
-  <% if (available.length) { %>
+  <% if (priceCredits != null) { %>
+    <div class="flash flash-info">
+      <%= t('billing:purchase_price') %>: <strong><%= priceCredits.toLocaleString(locale) %></strong> <%= t('billing:credits') %>
+      <% if (monthlyCredits != null) { %>
+        · <%= t('billing:monthly') %>: <strong><%= monthlyCredits.toLocaleString(locale) %></strong> <%= t('billing:credits') %>
+      <% } %>
+      <% if (!canAfford) { %>
+        · <span style="color:var(--color-danger);"><%= t('billing:insufficient_credits') %></span>
+      <% } %>
+    </div>
+  <% } %>
+
+  <% if (available && available.length) { %>
     <div class="card tight">
       <div class="data-table-wrap">
         <table class="data-table">
@@ -73,6 +91,7 @@
             <tr>
               <th><%= t('labels.tracking_number') %></th>
               <th><%= t('labels.region') %></th>
+              <th><%= t('billing:price') %></th>
               <th class="actions-cell"></th>
             </tr>
           </thead>
@@ -81,15 +100,25 @@
               <tr>
                 <td><strong class="text-mono"><%= n.phoneNumber %></strong></td>
                 <td><small><%= n.locality %> <%= n.region %></small></td>
+                <td>
+                  <% if (priceCredits != null) { %>
+                    <strong><%= priceCredits.toLocaleString(locale) %></strong> <small><%= t('billing:credits') %></small>
+                  <% } else { %>
+                    —
+                  <% } %>
+                </td>
                 <td class="actions-cell">
                   <form method="post" action="/numbers/buy" class="inline">
-                    <input type="hidden" name="provider" value="<%= provider %>">
                     <input type="hidden" name="phoneNumber" value="<%= n.phoneNumber %>">
+                    <input type="hidden" name="countryCode" value="<%= countryCode %>">
+                    <input type="hidden" name="numberType" value="<%= numberType %>">
                     <select name="campaignId">
                       <option value="">—</option>
                       <% campaigns.forEach(function(c){ %><option value="<%= c._id %>"><%= c.name %></option><% }) %>
                     </select>
-                    <button type="submit" class="btn btn-sm"><%= t('actions.buy') %></button>
+                    <button type="submit" class="btn btn-sm" <%= canAfford ? '' : 'disabled' %>>
+                      <%= t('actions.buy') %>
+                    </button>
                   </form>
                 </td>
               </tr>

@@ -3,6 +3,14 @@
 <%
   var isNew = !account;
   var limits = (account && account.limits) || { numbers: 100, users: 25, callsPerMonth: 100000 };
+  var primaryId = account && account.providers && account.providers.primaryCredentialId ? String(account.providers.primaryCredentialId) : '';
+  var fallbackId = account && account.providers && account.providers.fallbackCredentialId ? String(account.providers.fallbackCredentialId) : '';
+  var marginOverride = (account && account.providers && account.providers.marginOverride) || {};
+  var MARGIN_KINDS = ['numberPurchase', 'numberMonthly', 'callPerMinute'];
+  function ovFor(kind) {
+    var o = marginOverride[kind] || {};
+    return { enabled: !!o.enabled, mode: o.mode || 'percent', value: typeof o.value === 'number' ? o.value : 0 };
+  }
 %>
 <div class="page-head">
   <div class="title-block">
@@ -98,6 +106,64 @@
         <input id="lim_calls" type="number" min="0" step="1" name="limits.callsPerMonth" value="<%= limits.callsPerMonth %>">
       </div>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="heading"><h2><%= t('admin:accounts.providers') %></h2></div>
+    </div>
+    <div class="grid-2">
+      <div class="row">
+        <label for="primaryCredentialId"><%= t('admin:accounts.primary_provider') %></label>
+        <select id="primaryCredentialId" name="providers.primaryCredentialId">
+          <option value="">—</option>
+          <% (typeof credentials !== 'undefined' && credentials || []).forEach(function(c){ %>
+            <option value="<%= c._id %>" <%= primaryId===String(c._id)?'selected':'' %>>
+              <%= c.label %> (<%= c.provider %><%= c.isDefault ? ' · default' : '' %>)
+            </option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="row">
+        <label for="fallbackCredentialId"><%= t('admin:accounts.fallback_provider') %></label>
+        <select id="fallbackCredentialId" name="providers.fallbackCredentialId">
+          <option value="">—</option>
+          <% (typeof credentials !== 'undefined' && credentials || []).forEach(function(c){ %>
+            <option value="<%= c._id %>" <%= fallbackId===String(c._id)?'selected':'' %>>
+              <%= c.label %> (<%= c.provider %>)
+            </option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+
+    <h3 style="margin-block-start:1.5rem;"><%= t('admin:accounts.margin_overrides') %></h3>
+    <p class="subtitle"><%= t('admin:accounts.margin_overrides_help') %></p>
+    <% MARGIN_KINDS.forEach(function(kind){
+         var o = ovFor(kind);
+    %>
+      <div class="grid-2" style="align-items:end;border-block-start:1px solid var(--color-border);padding-block:0.75rem;">
+        <div class="row">
+          <label class="checkbox-label">
+            <input type="checkbox" name="providers.marginOverride.<%= kind %>.enabled" <%= o.enabled?'checked':'' %>>
+            <span><%= t('admin:accounts.margin.' + kind) %></span>
+          </label>
+        </div>
+        <div class="grid-2">
+          <div class="row">
+            <label><%= t('billing:margin.mode') %></label>
+            <select name="providers.marginOverride.<%= kind %>.mode">
+              <option value="percent" <%= o.mode==='percent'?'selected':'' %>><%= t('billing:margin.percent') %></option>
+              <option value="fixed" <%= o.mode==='fixed'?'selected':'' %>><%= t('billing:margin.fixed') %></option>
+            </select>
+          </div>
+          <div class="row">
+            <label><%= t('billing:margin.value') %></label>
+            <input type="number" min="0" step="0.01" name="providers.marginOverride.<%= kind %>.value" value="<%= o.value %>">
+          </div>
+        </div>
+      </div>
+    <% }) %>
   </div>
 
   <div class="form-actions">

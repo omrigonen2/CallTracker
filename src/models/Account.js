@@ -2,6 +2,15 @@
 
 const mongoose = require('mongoose');
 
+const MarginOverrideSchema = new mongoose.Schema(
+  {
+    enabled: { type: Boolean, default: false },
+    mode: { type: String, enum: ['percent', 'fixed'], default: 'percent' },
+    value: { type: Number, default: 0, min: 0 },
+  },
+  { _id: false }
+);
+
 const AccountSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -16,6 +25,16 @@ const AccountSchema = new mongoose.Schema(
       users: { type: Number, default: 25 },
       callsPerMonth: { type: Number, default: 100000 },
     },
+    providers: {
+      primaryCredentialId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProviderCredential', default: null },
+      fallbackCredentialId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProviderCredential', default: null },
+      marginOverride: {
+        numberPurchase: { type: MarginOverrideSchema, default: () => ({}) },
+        numberMonthly: { type: MarginOverrideSchema, default: () => ({}) },
+        callPerMinute: { type: MarginOverrideSchema, default: () => ({}) },
+      },
+    },
+    credits: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

@@ -1,0 +1,43 @@
+{
+  "title": "חיוב",
+  "subtitle": "יתרת הקרדיטים של החשבון והפעולות האחרונות.",
+  "balance": "יתרה",
+  "balance_after": "יתרה אחרי",
+  "credits": "קרדיטים",
+  "credits_short": "קר׳",
+  "ledger": "ספר חשבונות",
+  "ledger_help": "50 הפעולות האחרונות בחשבון זה.",
+  "metadata": "פרטים",
+  "monthly": "חודשי",
+  "no_primary_provider": "לא הוגדר ספק ראשי לחשבון זה. בקש ממנהל-על להקצות ספק.",
+  "price": "מחיר",
+  "price_error": "לא ניתן לקבל מחיר עדכני",
+  "provider_cost_usd": "עלות ספק (USD)",
+  "purchase_price": "מחיר רכישה",
+  "insufficient_credits": "אין מספיק קרדיטים",
+  "topped_up": "הטעינה בוצעה",
+  "adjusted": "היתרה עודכנה",
+  "adjust": {
+    "amount": "סכום (קרדיטים)",
+    "amount_help": "ערך שלילי יחוייב",
+    "note": "סיבה",
+    "note_help": "תוצג בספר החשבונות",
+    "submit": "החל עדכון"
+  },
+  "margin": {
+    "label": "מרווח",
+    "mode": "סוג",
+    "value": "ערך",
+    "percent": "אחוזים",
+    "fixed": "קרדיטים/USD קבועים"
+  },
+  "kind": {
+    "label": "סוג",
+    "topup": "טעינה",
+    "number_purchase": "רכישת מספר",
+    "number_monthly": "מנוי חודשי",
+    "call_charge": "חיוב שיחה",
+    "adjustment": "התאמה",
+    "refund": "החזר"
+  }
+}

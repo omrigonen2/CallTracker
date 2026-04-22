@@ -49,6 +49,8 @@ module.exports = {
     maxAgeMs: 7 * 24 * 60 * 60 * 1000,
   },
 
+  creditUsdRate: parseFloat(process.env.CREDIT_USD_RATE || '0.01'),
+
   locales: ['en', 'he'],
   defaultLocale: 'en',
   rtlLocales: ['he', 'ar'],

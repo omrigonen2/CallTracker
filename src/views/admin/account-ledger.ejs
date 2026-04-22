@@ -1,0 +1,57 @@
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <div class="title-block">
+    <h1><%= t('billing:ledger') %> · <%= account.name %></h1>
+    <p class="subtitle"><%= t('billing:balance') %>: <strong><%= (balance || 0).toLocaleString(locale) %></strong> <%= t('billing:credits') %></p>
+  </div>
+  <div class="actions">
+    <a href="/admin/accounts/<%= account._id %>" class="btn-secondary btn">
+      <span class="material-symbols-outlined icon-flip-rtl">arrow_back</span> <%= t('actions.back') %>
+    </a>
+  </div>
+</div>
+
+<div class="card tight">
+  <% if (!entries.length) { %>
+    <div class="empty-state">
+      <span class="material-symbols-outlined">receipt_long</span>
+      <p><%= t('messages.no_records') %></p>
+    </div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table density-comfortable">
+        <thead>
+          <tr>
+            <th><%= t('labels.created_at') %></th>
+            <th><%= t('billing:kind.label') %></th>
+            <th><%= t('billing:credits') %></th>
+            <th><%= t('billing:balance_after') %></th>
+            <th><%= t('billing:provider_cost_usd') %></th>
+            <th><%= t('billing:margin.label') %></th>
+            <th><%= t('billing:metadata') %></th>
+            <th><%= t('admin:audit.actor') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% entries.forEach(function(l){
+              var meta = l.metadata || {};
+              var marginText = meta.marginMode ? (meta.marginMode + ' ' + (meta.marginValue||0)) : '—';
+          %>
+            <tr>
+              <td><small><%= new Date(l.createdAt).toLocaleString(locale) %></small></td>
+              <td><span class="badge badge--neutral"><%= t('billing:kind.' + l.kind) %></span></td>
+              <td><strong style="color:<%= l.credits >= 0 ? 'var(--color-success)' : 'var(--color-danger)' %>;"><%= l.credits >= 0 ? '+' : '' %><%= l.credits %></strong></td>
+              <td><%= l.balanceAfter %></td>
+              <td><small><%= meta.providerCostUsd != null ? ('$' + Number(meta.providerCostUsd).toFixed(4)) : '—' %></small></td>
+              <td><small><%= marginText %></small></td>
+              <td><small><%= meta.note || meta.country || '' %><% if (meta.durationSec) { %> · <%= meta.durationSec %>s<% } %></small></td>
+              <td><small><%= l.createdBy ? (l.createdBy.email || l.createdBy.name || '') : '' %></small></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

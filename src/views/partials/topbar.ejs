@@ -26,6 +26,12 @@
   <% } %>
 
   <div class="topbar-right">
+    <% if (typeof hasAccount !== 'undefined' && hasAccount && typeof creditsBalance !== 'undefined' && creditsBalance !== null) { %>
+      <a href="/account/billing" class="badge badge--brand hide-on-mobile" title="<%= t('billing:balance') %>" style="text-decoration:none;">
+        <span class="material-symbols-outlined">paid</span>
+        <%= (creditsBalance || 0).toLocaleString(locale) %> <%= t('billing:credits_short') %>
+      </a>
+    <% } %>
     <% if (typeof account !== 'undefined' && account) { %>
       <span class="badge badge--brand hide-on-mobile"><%= account.name %></span>
     <% } %>

@@ -54,6 +54,67 @@
     </div>
     <div class="kpi-card__value"><%= callsCount.toLocaleString(locale) %></div>
   </div>
+  <div class="kpi-card">
+    <div class="kpi-card__head">
+      <span class="kpi-card__label"><%= t('billing:balance') %></span>
+      <span class="kpi-card__icon"><span class="material-symbols-outlined">paid</span></span>
+    </div>
+    <div class="kpi-card__value"><%= (typeof balance !== 'undefined' ? balance : 0).toLocaleString(locale) %></div>
+  </div>
+</div>
+
+<div class="card tight">
+  <div class="card-header">
+    <div class="heading">
+      <h2><%= t('billing:credits') %></h2>
+      <small><%= t('billing:balance') %>: <strong><%= (typeof balance !== 'undefined' ? balance : 0).toLocaleString(locale) %></strong></small>
+    </div>
+    <div class="actions">
+      <a href="/admin/accounts/<%= account._id %>/ledger" class="btn-secondary btn btn-sm">
+        <span class="material-symbols-outlined">receipt_long</span> <%= t('billing:ledger') %>
+      </a>
+    </div>
+  </div>
+  <form method="post" action="/admin/accounts/<%= account._id %>/credits/adjust" class="filter-bar">
+    <div class="filter-field">
+      <label><%= t('billing:adjust.amount') %></label>
+      <input type="number" name="amount" step="1" required placeholder="<%= t('billing:adjust.amount_help') %>">
+    </div>
+    <div class="filter-field" style="flex:1;min-inline-size:240px;">
+      <label><%= t('billing:adjust.note') %></label>
+      <input type="text" name="note" maxlength="200" placeholder="<%= t('billing:adjust.note_help') %>">
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn"><span class="material-symbols-outlined">edit</span> <%= t('billing:adjust.submit') %></button>
+    </div>
+  </form>
+
+  <% if (typeof recentLedger !== 'undefined' && recentLedger.length) { %>
+    <div class="data-table-wrap" style="margin-block-start:1rem;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><%= t('labels.created_at') %></th>
+            <th><%= t('billing:kind.label') %></th>
+            <th><%= t('billing:credits') %></th>
+            <th><%= t('billing:balance_after') %></th>
+            <th><%= t('billing:metadata') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% recentLedger.forEach(function(l){ %>
+            <tr>
+              <td><small><%= new Date(l.createdAt).toLocaleString(locale) %></small></td>
+              <td><span class="badge badge--neutral"><%= t('billing:kind.' + l.kind) %></span></td>
+              <td><strong style="color:<%= l.credits >= 0 ? 'var(--color-success)' : 'var(--color-danger)' %>;"><%= l.credits >= 0 ? '+' : '' %><%= l.credits %></strong></td>
+              <td><%= l.balanceAfter %></td>
+              <td><small><%= (l.metadata && l.metadata.note) || '' %></small></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
 </div>
 
 <div class="card tight">

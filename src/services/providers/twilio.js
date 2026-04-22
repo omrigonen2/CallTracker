@@ -12,8 +12,8 @@ async function client(credentialId = null) {
   };
 }
 
-async function listAvailableNumbers({ countryCode = 'US', areaCode, contains, numberType = 'local', limit = 20 }) {
-  const { client: tw } = await client();
+async function listAvailableNumbers({ countryCode = 'US', areaCode, contains, numberType = 'local', limit = 20, credentialId = null }) {
+  const { client: tw } = await client(credentialId);
   const TYPE_BUCKETS = { local: 'local', tollFree: 'tollFree', mobile: 'mobile' };
   const bucket = TYPE_BUCKETS[numberType] || 'local';
   const opts = { limit: Math.min(parseInt(limit, 10) || 20, 50) };
@@ -23,8 +23,8 @@ async function listAvailableNumbers({ countryCode = 'US', areaCode, contains, nu
   return numbers.map((n) => ({ phoneNumber: n.phoneNumber, friendlyName: n.friendlyName, locality: n.locality, region: n.region }));
 }
 
-async function buyNumber({ phoneNumber, voiceUrl, statusCallback, voiceMethod = 'POST' }) {
-  const { client: tw, creds } = await client();
+async function buyNumber({ phoneNumber, voiceUrl, statusCallback, voiceMethod = 'POST', credentialId = null }) {
+  const { client: tw, creds } = await client(credentialId);
   const purchased = await tw.incomingPhoneNumbers.create({ phoneNumber, voiceUrl, statusCallback, voiceMethod });
   return { credentialId: creds.id, providerNumberId: purchased.sid, phoneNumber: purchased.phoneNumber };
 }

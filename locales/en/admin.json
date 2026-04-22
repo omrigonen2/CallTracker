@@ -21,6 +21,13 @@
     "rotated_at": "Last rotated",
     "rotate": "Rotate / update",
     "in_use": "Cannot delete: numbers are using this credential.",
+    "margins": "Default margins",
+    "margins_help": "Used to calculate credit price unless an account override applies.",
+    "margin": {
+      "numberPurchase": "Number purchase",
+      "numberMonthly": "Number monthly fee",
+      "callPerMinute": "Call (per minute)"
+    },
     "fields": {
       "account_sid": "Account SID",
       "auth_token": "Auth Token",
@@ -52,6 +59,16 @@
     "limits_calls": "Max calls per month",
     "use": "Use as workspace",
     "use_help": "Open this tenant's workspace as super-admin",
+    "providers": "Providers",
+    "primary_provider": "Primary provider",
+    "fallback_provider": "Fallback provider",
+    "margin_overrides": "Margin overrides",
+    "margin_overrides_help": "Override the provider's default margin for this account when enabled.",
+    "margin": {
+      "numberPurchase": "Number purchase",
+      "numberMonthly": "Number monthly fee",
+      "callPerMinute": "Call (per minute)"
+    },
     "plans": {
       "free": "Free",
       "starter": "Starter",

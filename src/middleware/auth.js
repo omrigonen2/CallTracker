@@ -55,7 +55,6 @@ async function loadSession(req, _res, next) {
 async function loadAccount(req, res, next) {
   if (!req.user) return next();
 
-  // Defaults so partials never crash even if a downstream lookup fails.
   req.memberships = [];
   req.accounts = [];
   req.account = null;
@@ -67,6 +66,7 @@ async function loadAccount(req, res, next) {
   res.locals.isSuperAdmin = !!req.user.isSuperAdmin;
   res.locals.permissions = req.permissions;
   res.locals.can = (perm) => req.user.isSuperAdmin || req.permissions.has(perm);
+  res.locals.creditsBalance = null;
 
   let accountId = null;
   let account = null;
@@ -105,6 +105,7 @@ async function loadAccount(req, res, next) {
     if (account) {
       req.account = account;
       accountId = account._id;
+      res.locals.creditsBalance = Number(account.credits) || 0;
     }
 
     req.permissions = await resolvePermissions({ user: req.user, accountId });

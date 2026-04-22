@@ -2,6 +2,8 @@
 
 const express = require('express');
 const Account = require('../models/Account');
+const LedgerEntry = require('../models/LedgerEntry');
+const billing = require('../services/billing');
 const { requirePermission } = require('../middleware/rbac');
 const audit = require('../services/audit');
 const countries = require('../utils/countries');
@@ -23,6 +25,25 @@ router.post('/', requirePermission('account.update'), async (req, res, next) => 
     await a.save();
     await audit.record({ ...audit.fromReq(req), action: 'account.update', entity: 'Account', entityId: a._id, metadata: { name, defaultLocale, timezone, defaultCountry } });
     res.render('account/settings', { error: null, success: true, account: a });
+  } catch (e) { next(e); }
+});
+
+router.get('/billing', requirePermission('account.read'), async (req, res, next) => {
+  try {
+    const accountId = req.account._id;
+    const [balance, entries] = await Promise.all([
+      billing.getBalance(accountId),
+      LedgerEntry.find({})
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .populate('createdBy', 'email name')
+        .lean(),
+    ]);
+    res.render('account/billing', {
+      balance,
+      entries,
+      MARGIN_KINDS: billing.MARGIN_KINDS,
+    });
   } catch (e) { next(e); }
 });
 

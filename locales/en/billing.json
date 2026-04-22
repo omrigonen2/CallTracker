@@ -1,0 +1,43 @@
+{
+  "title": "Billing",
+  "subtitle": "Your account credit balance and recent transactions.",
+  "balance": "Balance",
+  "balance_after": "Balance after",
+  "credits": "credits",
+  "credits_short": "cr",
+  "ledger": "Ledger",
+  "ledger_help": "Latest 50 credit transactions on this workspace.",
+  "metadata": "Details",
+  "monthly": "Monthly",
+  "no_primary_provider": "No primary provider is configured for this account. Ask a super-admin to assign one.",
+  "price": "Price",
+  "price_error": "Could not fetch live price",
+  "provider_cost_usd": "Provider cost (USD)",
+  "purchase_price": "Purchase price",
+  "insufficient_credits": "insufficient credits",
+  "topped_up": "Top-up applied",
+  "adjusted": "Balance adjusted",
+  "adjust": {
+    "amount": "Amount (credits)",
+    "amount_help": "Use negative to deduct",
+    "note": "Reason",
+    "note_help": "Visible in the ledger",
+    "submit": "Apply adjustment"
+  },
+  "margin": {
+    "label": "Margin",
+    "mode": "Mode",
+    "value": "Value",
+    "percent": "Percent",
+    "fixed": "Fixed credits/USD"
+  },
+  "kind": {
+    "label": "Kind",
+    "topup": "Top-up",
+    "number_purchase": "Number purchase",
+    "number_monthly": "Number monthly",
+    "call_charge": "Call charge",
+    "adjustment": "Adjustment",
+    "refund": "Refund"
+  }
+}

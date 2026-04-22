@@ -44,6 +44,16 @@ const accountFixture = {
   timezone: 'UTC',
   plan: 'free',
   limits: { numbers: 100, users: 25, callsPerMonth: 100000 },
+  credits: 250,
+  providers: {
+    primaryCredentialId: 'p1',
+    fallbackCredentialId: 'p2',
+    marginOverride: {
+      numberPurchase: { enabled: true, mode: 'percent', value: 30 },
+      numberMonthly: { enabled: false, mode: 'percent', value: 0 },
+      callPerMinute: { enabled: false, mode: 'percent', value: 0 },
+    },
+  },
   createdAt: new Date(),
 };
 
@@ -87,6 +97,27 @@ stub('../src/models/AuditLog', {
 
 stub('../src/models/ProviderCredential', {
   findById: async () => null,
+  find: () => chain([
+    { _id: 'p1', provider: 'twilio', label: 'Default Twilio', isDefault: true },
+    { _id: 'p2', provider: 'twilio', label: 'Backup', isDefault: false },
+  ]),
+});
+
+stub('../src/models/LedgerEntry', {
+  find: () => chain([]),
+  create: async (doc) => ({ _id: 'l1', ...doc }),
+});
+
+stub('../src/services/billing', {
+  MARGIN_KINDS: ['numberPurchase', 'numberMonthly', 'callPerMinute'],
+  computeCredits: async () => ({ credits: 0, marginMode: 'percent', marginValue: 0, finalUsd: 0, providerCostUsd: 0 }),
+  getBalance: async () => 0,
+  debit: async () => ({ balance: 0, credits: 0 }),
+  credit: async () => ({ balance: 0, credits: 0 }),
+  noteZero: async () => null,
+  InsufficientCreditsError: class extends Error {
+    constructor() { super('INSUFFICIENT_CREDITS'); this.code = 'INSUFFICIENT_CREDITS'; }
+  },
 });
 
 stub('../src/services/credentialStore', {
@@ -228,6 +259,7 @@ test('admin smoke: every admin GET returns 200 for super-admin without membershi
     '/admin/accounts/new',
     '/admin/accounts/a1',
     '/admin/accounts/a1/edit',
+    '/admin/accounts/a1/ledger',
     '/admin/providers',
     '/admin/providers/new',
     '/admin/audit',
@@ -263,6 +295,54 @@ test('account-edit renders a default-country <select> and a plan <select>', asyn
   assert.match(res.body, /<select[^>]+id="plan"/, 'plan must be a <select>');
   assert.match(res.body, /<option[^>]+value="enterprise"/, 'enterprise plan option must be present');
   assert.doesNotMatch(res.body, /<input[^>]+id="plan"/, 'plan <input> should be removed');
+});
+
+test('account-edit renders provider primary/fallback selects with credentials', async () => {
+  const app = makeApp();
+  const res = await getStatus(app, '/admin/accounts/a1/edit');
+  assert.strictEqual(res.status, 200);
+  assert.match(res.body, /name="providers\.primaryCredentialId"/, 'primary provider select present');
+  assert.match(res.body, /name="providers\.fallbackCredentialId"/, 'fallback provider select present');
+  assert.match(res.body, /Default Twilio/, 'credential label appears in dropdown');
+  assert.match(res.body, /Backup/, 'fallback credential label appears');
+});
+
+test('account-edit renders margin-override fields for all kinds', async () => {
+  const app = makeApp();
+  const res = await getStatus(app, '/admin/accounts/a1/edit');
+  assert.strictEqual(res.status, 200);
+  for (const kind of ['numberPurchase', 'numberMonthly', 'callPerMinute']) {
+    assert.match(res.body, new RegExp(`name="providers\\.marginOverride\\.${kind}\\.enabled"`),
+      `enabled checkbox for ${kind} must render`);
+    assert.match(res.body, new RegExp(`name="providers\\.marginOverride\\.${kind}\\.mode"`),
+      `mode select for ${kind} must render`);
+    assert.match(res.body, new RegExp(`name="providers\\.marginOverride\\.${kind}\\.value"`),
+      `value input for ${kind} must render`);
+  }
+  assert.match(res.body, /name="providers\.marginOverride\.numberPurchase\.enabled"\s+checked/,
+    'enabled override should be reflected in the rendered checkbox');
+});
+
+test('account-detail renders credit balance and adjust form', async () => {
+  const app = makeApp();
+  const res = await getStatus(app, '/admin/accounts/a1');
+  assert.strictEqual(res.status, 200);
+  assert.match(res.body, /action="\/admin\/accounts\/a1\/credits\/adjust"/, 'credits adjust form present');
+  assert.match(res.body, /name="amount"/, 'amount input present');
+  assert.match(res.body, /name="note"/, 'note input present');
+  assert.match(res.body, /href="\/admin\/accounts\/a1\/ledger"/, 'link to full ledger present');
+});
+
+test('provider-edit renders margin defaults section', async () => {
+  const app = makeApp();
+  const res = await getStatus(app, '/admin/providers/new');
+  assert.strictEqual(res.status, 200);
+  for (const kind of ['numberPurchase', 'numberMonthly', 'callPerMinute']) {
+    assert.match(res.body, new RegExp(`name="margins\\.${kind}\\.mode"`),
+      `provider margin mode for ${kind} must render`);
+    assert.match(res.body, new RegExp(`name="margins\\.${kind}\\.value"`),
+      `provider margin value for ${kind} must render`);
+  }
 });
 
 test('sidebar hides Workspace links for super-admin without an active membership', async () => {
@@ -343,4 +423,35 @@ test('topbar renders the impersonation banner when impersonating is true', async
   assert.strictEqual(res.status, 200);
   assert.match(res.body, /class="impersonation-bar"/);
   assert.match(res.body, /action="\/exit-impersonation"/);
+});
+
+test('topbar renders credits pill when hasAccount and creditsBalance are set', async () => {
+  const app = express();
+  app.set('view engine', 'ejs');
+  app.set('views', path.join(__dirname, '..', 'src', 'views'));
+  app.get('/test-pill', (req, res) => {
+    res.locals.user = { _id: 'u1' };
+    res.locals.account = { _id: 'a1', name: 'Acme' };
+    res.locals.accounts = [];
+    res.locals.hasAccount = true;
+    res.locals.creditsBalance = 1234;
+    res.locals.isSuperAdmin = false;
+    res.locals.impersonating = false;
+    res.locals.permissions = new Set();
+    res.locals.can = () => false;
+    res.locals.locale = 'en';
+    res.locals.dir = 'ltr';
+    res.locals.locales = ['en'];
+    res.locals.timezones = ['UTC'];
+    res.locals.countries = [];
+    res.locals.splitE164 = () => ({ dial: '', national: '' });
+    res.locals.currentUrl = '/test-pill';
+    res.locals.flash = [];
+    res.locals.t = (k) => String(k);
+    res.render('partials/topbar');
+  });
+  const res = await getStatus(app, '/test-pill');
+  assert.strictEqual(res.status, 200);
+  assert.match(res.body, /href="\/account\/billing"/, 'pill should link to billing page');
+  assert.match(res.body, /1,234/, 'pill should display the formatted balance');
 });

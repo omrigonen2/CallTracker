@@ -1,5 +1,13 @@
 <%- include('../partials/header') %>
 
+<%
+  var MARGIN_KINDS = ['numberPurchase', 'numberMonthly', 'callPerMinute'];
+  var margins = (cred && cred.margins) || {};
+  function mFor(kind) {
+    var m = margins[kind] || {};
+    return { mode: m.mode || 'percent', value: typeof m.value === 'number' ? m.value : 0 };
+  }
+%>
 <div class="page-head">
   <div class="title-block">
     <h1><%= cred ? t('admin:providers.rotate') : t('admin:providers.new') %></h1>
@@ -69,6 +77,37 @@
       <label for="signingSecret"><%= t('admin:providers.fields.signing_secret') %></label>
       <input id="signingSecret" name="signingSecret" type="password" autocomplete="new-password">
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="heading">
+        <h2><%= t('admin:providers.margins') %></h2>
+        <small><%= t('admin:providers.margins_help') %></small>
+      </div>
+    </div>
+    <% MARGIN_KINDS.forEach(function(kind){
+         var m = mFor(kind);
+    %>
+      <div class="grid-2" style="align-items:end;border-block-start:1px solid var(--color-border);padding-block:0.75rem;">
+        <div class="row">
+          <label><%= t('admin:providers.margin.' + kind) %></label>
+        </div>
+        <div class="grid-2">
+          <div class="row">
+            <label><%= t('billing:margin.mode') %></label>
+            <select name="margins.<%= kind %>.mode">
+              <option value="percent" <%= m.mode==='percent'?'selected':'' %>><%= t('billing:margin.percent') %></option>
+              <option value="fixed" <%= m.mode==='fixed'?'selected':'' %>><%= t('billing:margin.fixed') %></option>
+            </select>
+          </div>
+          <div class="row">
+            <label><%= t('billing:margin.value') %></label>
+            <input type="number" min="0" step="0.01" name="margins.<%= kind %>.value" value="<%= m.value %>">
+          </div>
+        </div>
+      </div>
+    <% }) %>
   </div>
 
   <div class="form-actions">
