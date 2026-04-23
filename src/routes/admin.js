@@ -293,13 +293,47 @@ router.get('/providers', async (req, res, next) => {
 
 router.get('/providers/new', (req, res) => res.render('admin/provider-edit', { cred: null, error: null }));
 
+function _credentialsFromBody(provider, body) {
+  if (provider === 'telnyx') {
+    const apiKey = String(body.apiKey || '').trim();
+    const publicKey = String(body.publicKey || '').trim();
+    const texmlApplicationId = String(body.texmlApplicationId || '').trim() || null;
+    return { apiKey, publicKey, texmlApplicationId };
+  }
+  const accountSid = String(body.accountSid || '').trim();
+  const authToken = String(body.authToken || '').trim();
+  const credentials = { accountSid, authToken };
+  if (body.twilioApiKey) credentials.apiKey = String(body.twilioApiKey).trim();
+  if (body.twilioApiSecret) credentials.apiSecret = String(body.twilioApiSecret).trim();
+  if (body.signingSecret) credentials.signingSecret = String(body.signingSecret).trim();
+  return credentials;
+}
+
+function _validateNewCredentials(provider, creds) {
+  if (provider === 'telnyx') {
+    if (!creds.apiKey) return 'Telnyx API key is required.';
+    if (!creds.publicKey) return 'Telnyx public key is required.';
+    return null;
+  }
+  if (provider === 'twilio') {
+    if (!creds.accountSid) return 'Twilio Account SID is required.';
+    if (!creds.authToken) return 'Twilio Auth Token is required.';
+    return null;
+  }
+  return `Unknown provider "${provider}".`;
+}
+
 router.post('/providers', async (req, res, next) => {
   try {
-    const { provider, label, isDefault, accountSid, authToken, apiKey, apiSecret, signingSecret } = req.body;
-    const credentials = { accountSid, authToken };
-    if (apiKey) credentials.apiKey = apiKey;
-    if (apiSecret) credentials.apiSecret = apiSecret;
-    if (signingSecret) credentials.signingSecret = signingSecret;
+    const { provider, label, isDefault } = req.body;
+    if (!['twilio', 'telnyx'].includes(provider)) {
+      return res.status(400).render('admin/provider-edit', { cred: null, error: 'invalid_provider' });
+    }
+    const credentials = _credentialsFromBody(provider, req.body);
+    const validationError = _validateNewCredentials(provider, credentials);
+    if (validationError) {
+      return res.status(400).render('admin/provider-edit', { cred: null, error: validationError });
+    }
     const doc = await credentialStore.create({
       provider,
       label,
@@ -335,14 +369,42 @@ router.get('/providers/:id/edit', async (req, res, next) => {
 
 router.post('/providers/:id', async (req, res, next) => {
   try {
-    const { label, isDefault, accountSid, authToken, apiKey, apiSecret, signingSecret } = req.body;
+    const existing = await ProviderCredential.findById(req.params.id);
+    if (!existing) return res.status(404).render('errors/404');
+    const { label, isDefault } = req.body;
+
     let credentials = null;
-    if (accountSid && authToken) {
-      credentials = { accountSid, authToken };
-      if (apiKey) credentials.apiKey = apiKey;
-      if (apiSecret) credentials.apiSecret = apiSecret;
-      if (signingSecret) credentials.signingSecret = signingSecret;
+    if (existing.provider === 'telnyx') {
+      const apiKey = String(req.body.apiKey || '').trim();
+      const publicKey = String(req.body.publicKey || '').trim();
+      const texmlApplicationId = String(req.body.texmlApplicationId || '').trim() || null;
+      if (apiKey || publicKey) {
+        if (!apiKey || !publicKey) {
+          return res.status(400).render('admin/provider-edit', {
+            cred: { _id: existing._id, provider: existing.provider, label: existing.label, isDefault: existing.isDefault, margins: existing.margins || {} },
+            error: 'Provide both Telnyx API key and public key when rotating credentials.',
+          });
+        }
+        credentials = { apiKey, publicKey, texmlApplicationId };
+      } else {
+        // Allow updating only the TeXML Application ID without rotating keys.
+        const { decrypt } = require('../config/crypto');
+        const current = decrypt(existing.credentialsEncrypted);
+        if ((current.texmlApplicationId || null) !== texmlApplicationId) {
+          credentials = { ...current, texmlApplicationId };
+        }
+      }
+    } else {
+      const accountSid = String(req.body.accountSid || '').trim();
+      const authToken = String(req.body.authToken || '').trim();
+      if (accountSid && authToken) {
+        credentials = { accountSid, authToken };
+        if (req.body.twilioApiKey) credentials.apiKey = String(req.body.twilioApiKey).trim();
+        if (req.body.twilioApiSecret) credentials.apiSecret = String(req.body.twilioApiSecret).trim();
+        if (req.body.signingSecret) credentials.signingSecret = String(req.body.signingSecret).trim();
+      }
     }
+
     const doc = await credentialStore.update(req.params.id, { label, credentials, isDefault: isDefault === 'on' });
     doc.margins = parseMarginsFromBody(req.body, 'margins');
     doc.markModified('margins');

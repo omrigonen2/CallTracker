@@ -1,8 +1,9 @@
 'use strict';
 
 const twilio = require('./twilio');
+const telnyx = require('./telnyx');
 
-const providers = { twilio };
+const providers = { twilio, telnyx };
 
 function get(name) {
   const p = providers[name];

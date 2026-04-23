@@ -25,8 +25,12 @@ async function build() {
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(compression());
   app.use(pinoHttp({ logger: log }));
-  app.use(express.urlencoded({ extended: true, limit: '1mb' }));
-  app.use(express.json({ limit: '1mb' }));
+  // `verify` exposes the raw request body on `req.rawBody`, which Telnyx's
+  // Ed25519 signature verification needs. Twilio's signature verification
+  // works off parsed params and is unaffected.
+  const captureRawBody = (req, _res, buf) => { req.rawBody = buf; };
+  app.use(express.urlencoded({ extended: true, limit: '1mb', verify: captureRawBody }));
+  app.use(express.json({ limit: '1mb', verify: captureRawBody }));
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, '..', 'public')));
 

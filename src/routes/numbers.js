@@ -12,7 +12,7 @@ const countries = require('../utils/countries');
 const log = require('../utils/logger');
 const billing = require('../services/billing');
 const providerSelector = require('../services/providerSelector');
-const twilioPricing = require('../services/twilioPricing');
+const pricing = require('../services/pricing');
 
 const NUMBER_TYPES = ['local', 'tollFree', 'mobile'];
 const LIMIT_OPTIONS = [10, 20, 50];
@@ -38,7 +38,8 @@ async function _resolveSelection(accountId) {
 
 async function _priceCredits({ sel, accountId, countryCode, numberType }) {
   try {
-    const usd = await twilioPricing.getNumberMonthlyPriceUsd({
+    const usd = await pricing.getNumberMonthlyPriceUsd({
+      provider: sel.primary.provider,
       credentialId: sel.primary._id,
       countryCode,
       numberType,
@@ -152,10 +153,12 @@ router.post('/buy', requirePermission('number.purchase'), async (req, res, next)
 
     let priceUsd = 0;
     try {
-      priceUsd = await twilioPricing.getNumberMonthlyPriceUsd({
+      priceUsd = await pricing.getNumberMonthlyPriceUsd({
+        provider: sel.primary.provider,
         credentialId: sel.primary._id,
         countryCode,
         numberType,
+        phoneNumber,
       });
     } catch (e) {
       log.warn({ err: e.message }, 'pricing lookup failed; defaulting to 1.15 USD');
@@ -239,6 +242,9 @@ router.post('/buy', requirePermission('number.purchase'), async (req, res, next)
         countryCode,
         monthlyCostCredits: monthlyQuote.credits,
         purchasedCostCredits: purchaseQuote.credits,
+        inboundPricePerMinUsd: (purchased && purchased.perMinutePriceUsd != null)
+          ? Number(purchased.perMinutePriceUsd)
+          : null,
       });
     } catch (e) {
       try {

@@ -7,6 +7,7 @@
     var m = margins[kind] || {};
     return { mode: m.mode || 'percent', value: typeof m.value === 'number' ? m.value : 0 };
   }
+  var providerName = cred ? cred.provider : 'twilio';
 %>
 <div class="page-head">
   <div class="title-block">
@@ -27,7 +28,10 @@
       <% if (!cred) { %>
         <div class="row">
           <label for="provider"><%= t('admin:providers.provider') %></label>
-          <select id="provider" name="provider"><option value="twilio">twilio</option></select>
+          <select id="provider" name="provider">
+            <option value="twilio" <%= providerName==='twilio' ? 'selected' : '' %>>Twilio</option>
+            <option value="telnyx" <%= providerName==='telnyx' ? 'selected' : '' %>>Telnyx</option>
+          </select>
         </div>
       <% } else { %>
         <div class="row">
@@ -48,34 +52,60 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="creds-twilio" style="<%= providerName==='twilio' ? '' : 'display:none;' %>">
     <div class="card-header">
       <div class="heading">
-        <h2>Twilio credentials</h2>
+        <h2><%= t('admin:providers.twilio_section') %></h2>
         <% if (cred) { %><small><%= t('admin:providers.rotate') %></small><% } %>
       </div>
     </div>
     <div class="grid-2">
       <div class="row">
         <label for="accountSid"><%= t('admin:providers.fields.account_sid') %></label>
-        <input id="accountSid" name="accountSid" autocomplete="off" <%= cred ? '' : 'required' %>>
+        <input id="accountSid" name="accountSid" autocomplete="off">
       </div>
       <div class="row">
         <label for="authToken"><%= t('admin:providers.fields.auth_token') %></label>
-        <input id="authToken" name="authToken" type="password" autocomplete="new-password" <%= cred ? '' : 'required' %>>
+        <input id="authToken" name="authToken" type="password" autocomplete="new-password">
       </div>
       <div class="row">
-        <label for="apiKey"><%= t('admin:providers.fields.api_key') %></label>
-        <input id="apiKey" name="apiKey" autocomplete="off">
+        <label for="twilioApiKey"><%= t('admin:providers.fields.twilio_api_key') %></label>
+        <input id="twilioApiKey" name="twilioApiKey" autocomplete="off">
       </div>
       <div class="row">
-        <label for="apiSecret"><%= t('admin:providers.fields.api_secret') %></label>
-        <input id="apiSecret" name="apiSecret" type="password" autocomplete="new-password">
+        <label for="twilioApiSecret"><%= t('admin:providers.fields.twilio_api_secret') %></label>
+        <input id="twilioApiSecret" name="twilioApiSecret" type="password" autocomplete="new-password">
       </div>
     </div>
     <div class="row">
       <label for="signingSecret"><%= t('admin:providers.fields.signing_secret') %></label>
       <input id="signingSecret" name="signingSecret" type="password" autocomplete="new-password">
+    </div>
+  </div>
+
+  <div class="card" id="creds-telnyx" style="<%= providerName==='telnyx' ? '' : 'display:none;' %>">
+    <div class="card-header">
+      <div class="heading">
+        <h2><%= t('admin:providers.telnyx_section') %></h2>
+        <% if (cred) { %><small><%= t('admin:providers.rotate') %></small><% } %>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="row">
+        <label for="apiKey"><%= t('admin:providers.fields.api_key') %></label>
+        <input id="apiKey" name="apiKey" type="password" autocomplete="new-password">
+        <small><%= t('admin:providers.fields.api_key_help') %></small>
+      </div>
+      <div class="row">
+        <label for="publicKey"><%= t('admin:providers.fields.public_key') %></label>
+        <input id="publicKey" name="publicKey" autocomplete="off">
+        <small><%= t('admin:providers.fields.public_key_help') %></small>
+      </div>
+    </div>
+    <div class="row">
+      <label for="texmlApplicationId"><%= t('admin:providers.fields.texml_application_id') %></label>
+      <input id="texmlApplicationId" name="texmlApplicationId" autocomplete="off">
+      <small><%= t('admin:providers.fields.texml_application_id_help') %></small>
     </div>
   </div>
 
@@ -115,4 +145,22 @@
     <a href="/admin/providers" class="btn-secondary btn"><%= t('actions.cancel') %></a>
   </div>
 </form>
+
+<% if (!cred) { %>
+<script>
+(function () {
+  var sel = document.getElementById('provider');
+  var twilioCard = document.getElementById('creds-twilio');
+  var telnyxCard = document.getElementById('creds-telnyx');
+  if (!sel || !twilioCard || !telnyxCard) return;
+  function sync() {
+    var p = sel.value;
+    twilioCard.style.display = (p === 'twilio') ? '' : 'none';
+    telnyxCard.style.display = (p === 'telnyx') ? '' : 'none';
+  }
+  sel.addEventListener('change', sync);
+  sync();
+})();
+</script>
+<% } %>
 <%- include('../partials/footer') %>

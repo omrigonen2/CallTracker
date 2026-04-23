@@ -6,7 +6,7 @@ const tenantScope = require('./plugins/tenantScope');
 const PhoneNumberSchema = new mongoose.Schema(
   {
     campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', default: null, index: true },
-    provider: { type: String, enum: ['twilio'], required: true },
+    provider: { type: String, enum: ['twilio', 'telnyx'], required: true },
     providerCredentialId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProviderCredential' },
     providerNumberId: { type: String, default: '' },
     phoneNumber: { type: String, required: true, index: true },
@@ -16,6 +16,7 @@ const PhoneNumberSchema = new mongoose.Schema(
     countryCode: { type: String, default: '' },
     monthlyCostCredits: { type: Number, default: 0 },
     purchasedCostCredits: { type: Number, default: 0 },
+    inboundPricePerMinUsd: { type: Number, default: null },
   },
   { timestamps: true }
 );

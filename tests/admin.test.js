@@ -167,10 +167,33 @@ stub('../src/services/billing', {
   },
 });
 
+const credentialStoreState = { lastCreate: null, lastUpdate: null };
 stub('../src/services/credentialStore', {
   listSafe: async () => [
     { _id: 'p1', provider: 'twilio', label: 'Default Twilio', isDefault: true, rotatedAt: new Date(), createdAt: new Date() },
   ],
+  create: async (args) => {
+    credentialStoreState.lastCreate = args;
+    return {
+      _id: 'new1',
+      provider: args.provider,
+      label: args.label,
+      margins: {},
+      markModified: () => {},
+      save: async () => {},
+    };
+  },
+  update: async (id, args) => {
+    credentialStoreState.lastUpdate = { id, args };
+    return {
+      _id: id,
+      provider: 'telnyx',
+      label: args.label,
+      margins: {},
+      markModified: () => {},
+      save: async () => {},
+    };
+  },
 });
 
 stub('../src/services/audit', {
@@ -402,6 +425,67 @@ test('provider-edit renders margin defaults section', async () => {
     assert.match(res.body, new RegExp(`name="margins\\.${kind}\\.value"`),
       `provider margin value for ${kind} must render`);
   }
+});
+
+test('provider-edit /new renders Telnyx option and Telnyx credential fields', async () => {
+  const app = makeApp();
+  const res = await getStatus(app, '/admin/providers/new');
+  assert.strictEqual(res.status, 200);
+  assert.match(res.body, /<option[^>]+value="telnyx"/, 'Telnyx option must render');
+  assert.match(res.body, /name="apiKey"/, 'Telnyx apiKey input must render');
+  assert.match(res.body, /name="publicKey"/, 'Telnyx publicKey input must render');
+  assert.match(res.body, /name="texmlApplicationId"/, 'Telnyx texmlApplicationId input must render');
+  assert.match(res.body, /name="twilioApiKey"/, 'Twilio apiKey input renamed to twilioApiKey');
+  assert.match(res.body, /name="twilioApiSecret"/, 'Twilio apiSecret input renamed to twilioApiSecret');
+});
+
+test('POST /admin/providers with provider=telnyx persists encrypted blob with apiKey + publicKey', async () => {
+  credentialStoreState.lastCreate = null;
+  const app = makeApp();
+  const res = await postRequest(app, '/admin/providers', {
+    provider: 'telnyx',
+    label: 'Telnyx Prod',
+    apiKey: 'KEY-LIVE-abcdef',
+    publicKey: 'cHVibGljLWtleS1iNjQ=',
+    texmlApplicationId: '',
+  });
+  assert.strictEqual(res.status, 302, `expected 302, got ${res.status}\n${res.body.slice(0, 400)}`);
+  assert.strictEqual(res.headers.location, '/admin/providers');
+  assert.ok(credentialStoreState.lastCreate, 'credentialStore.create must be called');
+  assert.strictEqual(credentialStoreState.lastCreate.provider, 'telnyx');
+  assert.strictEqual(credentialStoreState.lastCreate.credentials.apiKey, 'KEY-LIVE-abcdef');
+  assert.strictEqual(credentialStoreState.lastCreate.credentials.publicKey, 'cHVibGljLWtleS1iNjQ=');
+  assert.strictEqual(credentialStoreState.lastCreate.credentials.texmlApplicationId, null);
+});
+
+test('POST /admin/providers with provider=telnyx and missing publicKey returns 400', async () => {
+  credentialStoreState.lastCreate = null;
+  const app = makeApp();
+  const res = await postRequest(app, '/admin/providers', {
+    provider: 'telnyx',
+    label: 'Bad Telnyx',
+    apiKey: 'KEY-only',
+  });
+  assert.strictEqual(res.status, 400, `expected 400, got ${res.status}`);
+  assert.strictEqual(credentialStoreState.lastCreate, null, 'credential must NOT have been created');
+});
+
+test('POST /admin/providers with provider=twilio uses twilioApiKey/twilioApiSecret form fields', async () => {
+  credentialStoreState.lastCreate = null;
+  const app = makeApp();
+  const res = await postRequest(app, '/admin/providers', {
+    provider: 'twilio',
+    label: 'Twilio Prod',
+    accountSid: 'ACxxx',
+    authToken: 'tok',
+    twilioApiKey: 'SK123',
+    twilioApiSecret: 'sec',
+  });
+  assert.strictEqual(res.status, 302);
+  assert.strictEqual(credentialStoreState.lastCreate.provider, 'twilio');
+  assert.strictEqual(credentialStoreState.lastCreate.credentials.accountSid, 'ACxxx');
+  assert.strictEqual(credentialStoreState.lastCreate.credentials.apiKey, 'SK123');
+  assert.strictEqual(credentialStoreState.lastCreate.credentials.apiSecret, 'sec');
 });
 
 test('admin/settings renders billing card with credit-rate input prefilled', async () => {

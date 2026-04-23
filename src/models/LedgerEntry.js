@@ -28,6 +28,7 @@ const LedgerEntrySchema = new mongoose.Schema(
       marginMode: { type: String, default: null },
       marginValue: { type: Number, default: null },
       twilioRateRef: { type: String, default: null },
+      providerRateRef: { type: String, default: null },
       country: { type: String, default: null },
       durationSec: { type: Number, default: null },
       note: { type: String, default: null },

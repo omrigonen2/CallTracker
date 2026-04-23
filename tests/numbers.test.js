@@ -39,17 +39,22 @@ const accountFixture = {
   credits: 10000,
 };
 
-const primaryCred = { _id: 'p1', provider: 'twilio', label: 'primary', margins: {} };
-const fallbackCred = { _id: 'p2', provider: 'twilio', label: 'fallback', margins: {} };
+let primaryCred = { _id: 'p1', provider: 'twilio', label: 'primary', margins: {} };
+let fallbackCred = { _id: 'p2', provider: 'twilio', label: 'fallback', margins: {} };
 
 stub('../src/models/Account', {
   findById: () => leanWrap(accountFixture),
 });
 
+const createdPhoneNumbers = [];
 stub('../src/models/PhoneNumber', {
   find: () => leanWrap([]),
   countDocuments: async () => 0,
-  create: async (doc) => ({ ...doc, _id: 'pn-new' }),
+  create: async (doc) => {
+    const out = { ...doc, _id: 'pn-' + (createdPhoneNumbers.length + 1) };
+    createdPhoneNumbers.push(out);
+    return out;
+  },
   deleteOne: async () => ({}),
 });
 
@@ -77,16 +82,18 @@ stub('../src/services/providers', {
       if (String(credentialId) === 'p2' && fallbackShouldFail) {
         throw new Error('fallback boom');
       }
-      return {
+      const out = {
         providerNumberId: 'sid-' + credentialId,
         phoneNumber,
       };
+      if (name === 'telnyx') out.perMinutePriceUsd = 0.0055;
+      return out;
     },
     releaseNumber: async ({ providerNumberId }) => {
       releasedNumbers.push(providerNumberId);
     },
   }),
-  list: () => ['twilio'],
+  list: () => ['twilio', 'telnyx'],
 });
 
 stub('../src/services/providerSelector', {
@@ -94,10 +101,9 @@ stub('../src/services/providerSelector', {
   NoPrimaryProviderError: class extends Error {},
 });
 
-stub('../src/services/twilioPricing', {
+stub('../src/services/pricing', {
   getNumberMonthlyPriceUsd: async () => 1.0,
-  listAvailablePrices: async () => null,
-  getVoicePrice: async () => 0.013,
+  getVoicePrice: async () => ({ perMinuteUsd: 0.013, rateRef: 'twilio:US' }),
 });
 
 const debits = [];
@@ -220,8 +226,11 @@ function reset() {
   releasedNumbers.length = 0;
   debits.length = 0;
   credits.length = 0;
+  createdPhoneNumbers.length = 0;
   balance = 10000;
   insufficientBalance.value = false;
+  primaryCred = { _id: 'p1', provider: 'twilio', label: 'primary', margins: {} };
+  fallbackCred = { _id: 'p2', provider: 'twilio', label: 'fallback', margins: {} };
 }
 
 test('buy: primary succeeds, debits credits and creates PhoneNumber', async () => {
@@ -263,4 +272,15 @@ test('buy: both providers fail returns flash error redirect', async () => {
   const res = await postForm(app, '/numbers/buy', { phoneNumber: '+15551234567', countryCode: 'US', numberType: 'local' });
   assert.strictEqual(res.status, 302);
   assert.strictEqual(debits.length, 0, 'no debit when no purchase succeeded');
+});
+
+test('buy: telnyx primary persists provider=telnyx and inboundPricePerMinUsd on the PhoneNumber', async () => {
+  reset();
+  primaryCred = { _id: 'p1', provider: 'telnyx', label: 'primary-telnyx', margins: {} };
+  const app = makeApp();
+  const res = await postForm(app, '/numbers/buy', { phoneNumber: '+15551234567', countryCode: 'US', numberType: 'local' });
+  assert.strictEqual(res.status, 302, `expected 302, got ${res.status}\n${res.body.slice(0, 500)}`);
+  assert.strictEqual(createdPhoneNumbers.length, 1, 'one PhoneNumber persisted');
+  assert.strictEqual(createdPhoneNumbers[0].provider, 'telnyx');
+  assert.strictEqual(createdPhoneNumbers[0].inboundPricePerMinUsd, 0.0055, 'per-minute rate stashed at purchase');
 });

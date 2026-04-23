@@ -155,9 +155,9 @@
   },
   "numbers": {
     "title": "Tracking Numbers",
-    "subtitle": "Provision Twilio numbers and route inbound calls to your sales lines.",
+    "subtitle": "Provision numbers from your telephony provider and route inbound calls to your sales lines.",
     "buy_title": "Buy a tracking number",
-    "no_provider": "No provider credentials configured. Ask a Super-Admin to add Twilio credentials in the Admin Console.",
+    "no_provider": "No provider credentials configured. Ask a Super-Admin to add provider credentials in the Admin Console.",
     "override": "Forwarding override",
     "fields": {
       "number_type": "Number type",

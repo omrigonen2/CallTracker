@@ -28,12 +28,20 @@
       "numberMonthly": "דמי שכירות חודשיים",
       "callPerMinute": "שיחה (לדקה)"
     },
+    "twilio_section": "פרטי Twilio",
+    "telnyx_section": "פרטי Telnyx",
     "fields": {
       "account_sid": "Account SID",
       "auth_token": "Auth Token",
-      "api_key": "API Key (אופציונלי)",
-      "api_secret": "API Secret (אופציונלי)",
-      "signing_secret": "מפתח חתימה (אופציונלי)"
+      "twilio_api_key": "Twilio API Key (אופציונלי)",
+      "twilio_api_secret": "Twilio API Secret (אופציונלי)",
+      "signing_secret": "מפתח חתימה (אופציונלי)",
+      "api_key": "API Key",
+      "api_key_help": "מפתח Telnyx v2 API (Bearer token). נשמר מוצפן.",
+      "public_key": "Public Key",
+      "public_key_help": "מפתח Ed25519 ציבורי מפורטל Telnyx, משמש לאימות חתימות webhook.",
+      "texml_application_id": "TeXML Application ID (אופציונלי)",
+      "texml_application_id_help": "השאר ריק \u2014 ייווצר אוטומטית ברכישת המספר הראשון."
     }
   },
   "accounts": {

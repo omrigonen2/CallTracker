@@ -28,12 +28,20 @@
       "numberMonthly": "Number monthly fee",
       "callPerMinute": "Call (per minute)"
     },
+    "twilio_section": "Twilio credentials",
+    "telnyx_section": "Telnyx credentials",
     "fields": {
       "account_sid": "Account SID",
       "auth_token": "Auth Token",
-      "api_key": "API Key (optional)",
-      "api_secret": "API Secret (optional)",
-      "signing_secret": "Signing secret (optional)"
+      "twilio_api_key": "Twilio API Key (optional)",
+      "twilio_api_secret": "Twilio API Secret (optional)",
+      "signing_secret": "Signing secret (optional)",
+      "api_key": "API Key",
+      "api_key_help": "Telnyx v2 API key (Bearer token). Stored encrypted at rest.",
+      "public_key": "Public Key",
+      "public_key_help": "Ed25519 public key from your Telnyx portal, used to verify webhook signatures.",
+      "texml_application_id": "TeXML Application ID (optional)",
+      "texml_application_id_help": "Leave blank \u2014 created automatically on first number purchase."
     }
   },
   "accounts": {
