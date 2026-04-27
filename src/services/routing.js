@@ -24,7 +24,10 @@ function resolveForwardTo({ phoneNumberDoc, campaignDoc }) {
   if (!campaignDoc) return { forwardTo: '', fallbackTo: '' };
 
   const tz = campaignDoc.timezone || 'UTC';
-  const now = DateTime.now().setZone(tz);
+  let now = DateTime.now().setZone(tz);
+  if (!now.isValid) {
+    now = DateTime.now().setZone('UTC');
+  }
   const today = DAYS[now.weekday % 7]; // luxon: 1=Mon..7=Sun
 
   for (const rule of campaignDoc.routingRules || []) {

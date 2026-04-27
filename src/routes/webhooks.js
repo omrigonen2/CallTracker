@@ -18,6 +18,36 @@ const log = require('../utils/logger');
 
 const router = express.Router();
 
+/**
+ * Twilio and Telnyx (TeXML) use Twilio-style params; some paths differ by casing/alias.
+ * Missing/undefined `To` would fail DB lookup; missing data must not throw downstream.
+ */
+function parseVoiceForm(body) {
+  if (!body || typeof body !== 'object') {
+    return { to: '', from: '', callSid: '' };
+  }
+  const b = body;
+  return {
+    to: String(b.To || b.to || b.Called || b.called || '').trim(),
+    from: String(b.From || b.from || b.Caller || b.caller || '').trim(),
+    callSid: String(
+      b.CallSid || b.callSid || b.CallControlId || b.call_control_id || ''
+    ).trim(),
+  };
+}
+
+function parseStatusForm(body) {
+  if (!body || typeof body !== 'object') {
+    return { sid: '', status: '', duration: 0 };
+  }
+  const b = body;
+  return {
+    sid: String(b.CallSid || b.callSid || b.CallControlId || b.call_control_id || '').trim(),
+    status: String(b.CallStatus || b.call_status || '').trim(),
+    duration: parseInt(b.CallDuration || b.call_duration || '0', 10),
+  };
+}
+
 // Webhooks are PUBLIC: tenant is resolved by the called number.
 // We bypass tenant scoping by NOT being inside a per-account async context.
 
@@ -97,9 +127,7 @@ async function verifyTelnyx(req, _res, next) {
 // ---------------------------------------------------------------------------
 
 async function _handleVoiceInbound(req, res, providerName) {
-  const to = req.body.To;
-  const from = req.body.From;
-  const callSid = req.body.CallSid;
+  const { to, from, callSid } = parseVoiceForm(req.body);
   const num = await PhoneNumber.findOne({ phoneNumber: to }).setOptions({ skipTenantScope: true });
   if (!num) {
     const r = new twilio.twiml.VoiceResponse();
@@ -139,7 +167,9 @@ async function _handleVoiceInbound(req, res, providerName) {
   if (campaign && campaign.postbackConfigs) {
     for (const pb of campaign.postbackConfigs) {
       if (!pb.enabled) continue;
-      if (pb.triggers.includes('call_started')) {
+      const triggers = Array.isArray(pb.triggers) ? pb.triggers : [];
+      if (!triggers.includes('call_started')) continue;
+      try {
         await dispatchPostback({
           accountId: num.accountId,
           campaignId: campaign._id,
@@ -148,6 +178,8 @@ async function _handleVoiceInbound(req, res, providerName) {
           trigger: 'call_started',
           payload: { callerNumber: from, destinationNumber: to, providerCallId: callSid, callId: String(call._id) },
         });
+      } catch (e) {
+        log.error({ err: e.message, callId: String(call._id) }, 'postback dispatch (call_started) failed; continuing TwiML');
       }
     }
   }
@@ -284,9 +316,7 @@ async function _chargeCall(call) {
 // ---------------------------------------------------------------------------
 
 async function _handleStatus(req, res, _providerName) {
-  const sid = req.body.CallSid;
-  const status = req.body.CallStatus;
-  const duration = parseInt(req.body.CallDuration || '0', 10);
+  const { sid, status, duration } = parseStatusForm(req.body);
   const call = await Call.findOne({ providerCallId: sid }).setOptions({ skipTenantScope: true });
   if (!call) return res.status(200).end();
 
@@ -315,7 +345,7 @@ async function _handleStatus(req, res, _providerName) {
   if (campaign && campaign.postbackConfigs && status === 'completed') {
     for (const pb of campaign.postbackConfigs) {
       if (!pb.enabled) continue;
-      const triggers = pb.triggers || [];
+      const triggers = Array.isArray(pb.triggers) ? pb.triggers : [];
       const payload = {
         callerNumber: call.callerNumber,
         destinationNumber: call.destinationNumber,
@@ -325,10 +355,18 @@ async function _handleStatus(req, res, _providerName) {
         status: call.status,
       };
       if (triggers.includes('call_completed')) {
-        await dispatchPostback({ accountId: call.accountId, campaignId: campaign._id, callId: call._id, postback: pb, trigger: 'call_completed', payload });
+        try {
+          await dispatchPostback({ accountId: call.accountId, campaignId: campaign._id, callId: call._id, postback: pb, trigger: 'call_completed', payload });
+        } catch (e) {
+          log.error({ err: e.message, callId: String(call._id) }, 'postback dispatch (call_completed) failed');
+        }
       }
       if (triggers.includes('call_qualified') && call.qualified) {
-        await dispatchPostback({ accountId: call.accountId, campaignId: campaign._id, callId: call._id, postback: pb, trigger: 'call_qualified', payload });
+        try {
+          await dispatchPostback({ accountId: call.accountId, campaignId: campaign._id, callId: call._id, postback: pb, trigger: 'call_qualified', payload });
+        } catch (e) {
+          log.error({ err: e.message, callId: String(call._id) }, 'postback dispatch (call_qualified) failed');
+        }
       }
     }
   }
