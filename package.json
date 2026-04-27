@@ -11,6 +11,7 @@
     "seed": "node src/seeds/index.js",
     "bootstrap-admin": "node src/seeds/super-admin.js",
     "check-translations": "node scripts/check-translations.js",
+    "check:twilio": "node scripts/check-twilio-webhook-readiness.js",
     "test": "node --test tests/*.test.js"
   },
   "engines": {

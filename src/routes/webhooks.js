@@ -104,7 +104,11 @@ async function verifyTwilio(req, _res, next) {
     const ok = twilio.validateRequest(token, sig, url, req.body);
     if (!ok) {
       log.warn(
-        { url, usedCredentialId: provider.id || provider._id || 'default' },
+        {
+          event: 'twilio_webhook_signature_invalid',
+          url,
+          usedCredentialId: provider.id || provider._id || 'default',
+        },
         'twilio webhook signature invalid'
       );
       return next(Object.assign(new Error('invalid_signature'), { status: 401 }));
