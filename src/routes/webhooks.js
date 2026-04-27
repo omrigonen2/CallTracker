@@ -48,6 +48,45 @@ function parseStatusForm(body) {
   };
 }
 
+/**
+ * URL Twilio signed (must match how the request hit the edge: https host, path, no APP_BASE_URL mismatch).
+ */
+function publicWebhookUrl(req) {
+  const path = req.originalUrl || '/';
+  const hostRaw = req.get('X-Forwarded-Host') || req.get('Host') || req.get('host') || '';
+  const host = String(hostRaw).split(',')[0].trim();
+  const protoRaw = req.get('X-Forwarded-Proto') || '';
+  const protoFirst = String(protoRaw).split(',')[0].trim();
+  const proto = protoFirst || (req.protocol === 'https' ? 'https' : 'http');
+  if (host) return `${proto}://${host}${path}`;
+  return `${config.baseUrl}${path}`;
+}
+
+/**
+ * Auth token for signature validation must match the Twilio account that owns the number (subaccount creds).
+ */
+async function resolveTwilioCredentialsForRequest(req) {
+  const body = req.body || {};
+  const to = body.To || body.to;
+  if (to) {
+    const num = await PhoneNumber.findOne({ phoneNumber: to }).setOptions({ skipTenantScope: true }).lean();
+    if (num && num.provider === 'twilio' && num.providerCredentialId) {
+      return credentialStore.get('twilio', num.providerCredentialId);
+    }
+  }
+  const callSid = body.CallSid || body.callSid;
+  if (callSid) {
+    const call = await Call.findOne({ providerCallId: callSid }).setOptions({ skipTenantScope: true }).lean();
+    if (call && call.phoneNumberId) {
+      const num = await PhoneNumber.findById(call.phoneNumberId).setOptions({ skipTenantScope: true }).lean();
+      if (num && num.provider === 'twilio' && num.providerCredentialId) {
+        return credentialStore.get('twilio', num.providerCredentialId);
+      }
+    }
+  }
+  return credentialStore.get('twilio');
+}
+
 // Webhooks are PUBLIC: tenant is resolved by the called number.
 // We bypass tenant scoping by NOT being inside a per-account async context.
 
@@ -59,10 +98,17 @@ async function verifyTwilio(req, _res, next) {
   try {
     const sig = req.get('X-Twilio-Signature');
     if (!sig) return next(); // dev convenience
-    const provider = await credentialStore.get('twilio'); // default
-    const url = `${config.baseUrl}${req.originalUrl}`;
-    const ok = twilio.validateRequest(provider.signingSecret || provider.authToken, sig, url, req.body);
-    if (!ok) return next(Object.assign(new Error('invalid_signature'), { status: 401 }));
+    const provider = await resolveTwilioCredentialsForRequest(req);
+    const url = publicWebhookUrl(req);
+    const token = provider.signingSecret || provider.authToken;
+    const ok = twilio.validateRequest(token, sig, url, req.body);
+    if (!ok) {
+      log.warn(
+        { url, usedCredentialId: provider.id || provider._id || 'default' },
+        'twilio webhook signature invalid'
+      );
+      return next(Object.assign(new Error('invalid_signature'), { status: 401 }));
+    }
     next();
   } catch (e) {
     log.warn({ err: e.message }, 'twilio signature check failed');
